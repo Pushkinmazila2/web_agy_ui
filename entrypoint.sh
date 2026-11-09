@@ -1,22 +1,4 @@
 #!/bin/bash
-# Идемпотентная подготовка контейнера, затем запуск webide.
-# Всё сетевое идёт через socks5h-прокси (PROXY_URL).
-export DEBIAN_FRONTEND=noninteractive
-PROXY="${PROXY_URL:-socks5h://vless-client:1080}"
-AGY_URL="${AGY_DWNL_URL:-}"
-until nc -z -w 3 "$PROXY_HOST" "$PROXY_PORT" 2>/dev/null; do
-  log "Прокси-сервер еще не готов, ждем 3 секунды..."
-  sleep 3
-done
-# Функция логирования в стиле Docker (ISO 8601)
-log() { 
-  echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] $*" 
-}
-log_err() { 
-  echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] [ERROR] $*" >&2 
-}
-
-#!/bin/bash
 export DEBIAN_FRONTEND=noninteractive
 PROXY="${PROXY_URL:-socks5h://vless-client:1080}"
 AGY_URL="${AGY_DWNL_URL:-}"
