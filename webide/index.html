@@ -93,9 +93,50 @@
 
   #termwrap { height:var(--termh,35vh); min-height:80px; display:flex; flex-direction:column; flex:none; }
   #term-bar { display:flex; align-items:center; gap:8px; padding:3px 8px; background:var(--panel); color:var(--dim); flex:none; }
-  #term-bar span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #term-bar #term-title { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   #term-body { flex:1; min-height:0; background:#1e1e1e; overflow:hidden; }
   .xterm { padding:4px 6px; height:100%; }
+
+  /* лимиты */
+  .limits-bar { display:flex; align-items:center; gap:6px; flex:none; }
+  .limit-chip { position:relative; display:inline-flex; align-items:center; gap:6px; background:#2d2d30; border:1px solid #454545; border-radius:3px; padding:2px 7px; font-size:12px; line-height:16px; user-select:none; cursor:pointer; }
+  .limit-chip:hover { background:#38383d; border-color:#666; }
+  .limit-chip .grp { color:#9cdcfe; font-weight:500; }
+  .limit-item { position:relative; display:inline-flex; align-items:center; gap:3px; }
+  .limit-item .val { font-weight:600; font-family:ui-monospace, monospace; }
+  .limit-item .val.ok { color:#73c991; }
+  .limit-item .val.warn { color:#e2c08d; }
+  .limit-item .val.crit { color:#f14c4c; }
+  .limit-item .win { color:var(--dim); font-size:10px; margin-left:1px; }
+  .limit-chip.loading { opacity:.7; cursor:wait; }
+  .limit-chip.err { color:#f48771; border-color:#803030; }
+  .limit-mini-bar { width:24px; height:4px; background:#3c3c3c; border-radius:2px; overflow:hidden; display:inline-block; vertical-align:middle; margin-left:2px; }
+  .limit-mini-fill { height:100%; border-radius:2px; }
+  .limit-mini-fill.ok { background:#73c991; }
+  .limit-mini-fill.warn { background:#e2c08d; }
+  .limit-mini-fill.crit { background:#f14c4c; }
+
+  /* всплывающая подсказка с точным процентом при наведении */
+  .limit-item .limit-tip {
+    position:absolute; bottom:calc(100% + 7px); left:50%; transform:translateX(-50%) translateY(4px);
+    background:#18181b; color:#fff; border:1px solid #4f4f56; border-radius:4px; padding:4px 8px;
+    font-size:11px; font-weight:normal; line-height:14px; white-space:nowrap; pointer-events:none;
+    box-shadow:0 4px 14px rgba(0,0,0,0.7); z-index:1000; opacity:0; visibility:hidden;
+    transition:opacity .12s ease, transform .12s ease;
+  }
+  .limit-item .limit-tip::after {
+    content:''; position:absolute; top:100%; left:50%; margin-left:-4px;
+    border:4px solid transparent; border-top-color:#18181b;
+  }
+  .limit-item:hover .limit-tip { opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); }
+
+  /* модалка лимитов */
+  .limits-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:12px; }
+  .limits-table th { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); color:var(--dim); font-weight:600; text-transform:uppercase; font-size:11px; }
+  .limits-table td { padding:6px 8px; border-bottom:1px solid #333; vertical-align:middle; }
+  .limits-pbar { height:6px; background:#3c3c3c; border-radius:3px; overflow:hidden; width:100px; }
+  .limits-pfill { height:100%; border-radius:3px; }
+  .limits-raw { background:#1e1e1e; border:1px solid var(--line); border-radius:4px; padding:8px; font-family:ui-monospace, monospace; font-size:11px; max-height:200px; overflow:auto; white-space:pre-wrap; word-break:break-word; color:#bbb; margin-top:4px; }
 
   #toast { position:fixed; right:14px; bottom:14px; background:#5a1d1d; color:#fff; padding:8px 12px; border-radius:4px; display:none; max-width:460px; z-index:99; white-space:pre-wrap; }
   #toast.ok { background:#1f4a2e; }
@@ -186,7 +227,7 @@
     </div>
     <div id="splitH" class="split"></div>
     <div id="termwrap">
-      <div id="term-bar"><span id="term-title">agy</span><button id="agy-set" title="Настройки agy и флаги запуска проекта">⚙ Настройки агента</button><button id="restart">Перезапустить сессию</button></div>
+      <div id="term-bar"><span id="term-title">agy</span><div id="limits-wrap" class="limits-bar"></div><button id="agy-set" title="Настройки agy и флаги запуска проекта">⚙ Настройки агента</button><button id="restart">Перезапустить сессию</button></div>
       <div id="term-body"></div>
     </div>
   </div>
@@ -207,7 +248,7 @@ const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Typ
 const S = {
   projects: [], project: null, expanded: new Set(), children: {}, files: new Map(), active: null,
   sel: { path: '', dir: true }, git: { repo: false }, gitRaw: null, gitMap: {}, gitDirs: new Set(), lastBranch: null,
-  diffOn: false, diffOrig: null,
+  diffOn: false, diffOrig: null, limits: null,
   rainbow: localStorage.rainbow !== '0', wrap: localStorage.wrap === '1',
 };
 let editor, diffEditor, monaco;
@@ -819,7 +860,7 @@ async function setProject(id) {
   $('#proj').value = id; $('#results').textContent = '';
   const p = S.projects.find(p => p.id === id);
   $('#term-title').textContent = `agy — ${p.path}`; document.title = `${p.name} · agy`;
-  await loadDir(''); renderTree(); renderGit(); gitStatus(true); ended = false; connect();
+  await loadDir(''); renderTree(); renderGit(); gitStatus(true); ended = false; connect(); fetchLimits(false);
 }
 $('#proj').onchange = e => setProject(e.target.value);
 $('#newproj').onclick = async () => {
@@ -916,6 +957,221 @@ async function agentSettings() {
   document.body.append(ov);
 }
 $('#agy-set').onclick = agentSettings;
+
+/* ───────── лимиты ───────── */
+let limitsLoading = false;
+async function fetchLimits(force = false) {
+  if (limitsLoading) return S.limits;
+  limitsLoading = true;
+  try {
+    if (force || !S.limits) renderLimits({ loading: true });
+    const u = api('/api/limits', { project: S.project, refresh: force ? '1' : '0' });
+    const r = await fetch(u);
+    if (!r.ok) {
+      S.limits = { ok: false, error: await errText(r) };
+    } else {
+      S.limits = await r.json();
+    }
+  } catch (e) {
+    S.limits = { ok: false, error: e.message };
+  } finally {
+    limitsLoading = false;
+  }
+  renderLimits(S.limits);
+  return S.limits;
+}
+
+const fmtPct = frac => (frac == null ? '—' : (Math.round(frac * 10000) / 100) + '%');
+const fmtUsedPct = frac => (frac == null ? '—' : (Math.round((1 - frac) * 10000) / 100) + '%');
+
+function renderLimits(data) {
+  const wrap = $('#limits-wrap');
+  if (!wrap) return;
+  if (!data) { wrap.textContent = ''; return; }
+  if (data.disabled) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  wrap.textContent = '';
+
+  if (data.loading) {
+    const chip = h('div', 'limit-chip loading');
+    chip.append(h('span', 'grp', 'Лимиты: '), document.createTextNode('опрос…'));
+    chip.title = 'Опрос agy /usage в фоне…';
+    chip.onclick = () => showLimitsModal();
+    wrap.append(chip);
+    return;
+  }
+
+  const items = data.items || {};
+  const groups = Object.keys(items);
+  if (!data.ok || !groups.length) {
+    const chip = h('div', 'limit-chip err');
+    chip.append(h('span', '', '⚠ Лимиты'));
+    chip.title = (data.error || 'Лимиты не найдены в выводе /usage') + '\nНажмите для подробностей';
+    chip.onclick = () => showLimitsModal();
+    wrap.append(chip);
+    return;
+  }
+
+  const GRP_NAMES = { claude: 'Claude', gemini: 'Gemini', all: 'Лимиты' };
+  const GRP_NAMES_LONG = { claude: 'Claude / GPT', gemini: 'Gemini', all: 'Все модели' };
+  const WIN_NAMES = { h5: '5ч', week: 'нед' };
+  const WIN_NAMES_LONG = { h5: '5 часов', week: '1 неделя' };
+
+  for (const grp of groups) {
+    const wins = items[grp];
+    if (!wins || !Object.keys(wins).length) continue;
+    const chip = h('div', 'limit-chip');
+    chip.append(h('span', 'grp', GRP_NAMES[grp] || grp));
+
+    let tip = `${GRP_NAMES_LONG[grp] || grp}:\n`;
+    for (const [w, it] of Object.entries(wins)) {
+      const exactPct = fmtPct(it.remaining);
+      const usedPct = fmtUsedPct(it.remaining);
+      const pctNum = Math.round(it.remaining * 100);
+      const statusCls = pctNum >= 50 ? 'ok' : pctNum >= 20 ? 'warn' : 'crit';
+
+      const itemWrap = h('span', 'limit-item');
+
+      const valSpan = h('span', 'val ' + statusCls, exactPct);
+      valSpan.append(h('span', 'win', WIN_NAMES[w] || w));
+
+      const pbar = h('span', 'limit-mini-bar');
+      const pfill = h('span', 'limit-mini-fill ' + statusCls);
+      pfill.style.width = Math.max(0, Math.min(100, pctNum)) + '%';
+      pbar.append(pfill);
+
+      const tipText = `${GRP_NAMES[grp] || grp} (${WIN_NAMES_LONG[w] || w}): осталось ${exactPct} (расход: ${usedPct})` + (it.reset ? ` · сброс: ${it.reset}` : '') + (it.assumed ? ' [прибл.]' : '');
+      const tipBox = h('span', 'limit-tip', tipText);
+
+      itemWrap.append(valSpan, pbar, tipBox);
+      itemWrap.title = tipText;
+      chip.append(itemWrap);
+
+      tip += `• ${WIN_NAMES_LONG[w] || w}: осталось ${exactPct} (расход: ${usedPct})` + (it.reset ? ` (сброс: ${it.reset})` : '') + (it.assumed ? ' [прибл.]' : '') + '\n';
+    }
+
+    if (data.age != null) tip += `\nОбновлено: ${data.age < 60 ? data.age + ' с' : Math.round(data.age / 60) + ' мин'} назад`;
+    tip += '\nНажмите для подробностей и обновления';
+    chip.title = tip.trim();
+    chip.onclick = () => showLimitsModal();
+    wrap.append(chip);
+  }
+}
+
+function showLimitsModal() {
+  const d = S.limits || { items: {}, error: 'Данные ещё не загружены' };
+  const ov = h('div'); ov.id = 'modal';
+  const box = h('div', 'dlg wide');
+  box.append(h('h3', '', 'Лимиты запросов agy'));
+
+  const contentBox = h('div');
+  box.append(contentBox);
+
+  const renderModalBody = (data) => {
+    contentBox.textContent = '';
+    if (data.error && (!data.items || !Object.keys(data.items).length)) {
+      contentBox.append(h('div', 'note', '⚠ ' + data.error));
+    } else {
+      if (data.error) contentBox.append(h('div', 'note', '⚠ ' + data.error));
+      const tbl = h('table', 'limits-table');
+      const thead = h('thead');
+      const trh = h('tr');
+      for (const thText of ['Модель / Группа', 'Окно', 'Осталось', 'Шкала', 'Сброс']) {
+        trh.append(h('th', '', thText));
+      }
+      thead.append(trh);
+      tbl.append(thead);
+
+      const tbody = h('tbody');
+      const GRP_NAMES_LONG = { claude: 'Claude / GPT', gemini: 'Gemini', all: 'Все модели' };
+      const WIN_NAMES_LONG = { h5: '5 часов', week: '1 неделя' };
+
+      for (const [grp, wins] of Object.entries(data.items || {})) {
+        for (const [w, it] of Object.entries(wins)) {
+          const tr = h('tr');
+          tr.append(h('td', '', (GRP_NAMES_LONG[grp] || grp) + (it.assumed ? ' (прибл.)' : '')));
+          tr.append(h('td', '', WIN_NAMES_LONG[w] || w));
+          const exactPct = fmtPct(it.remaining);
+          const usedPct = fmtUsedPct(it.remaining);
+          const pctNum = Math.round(it.remaining * 100);
+          const statusCls = pctNum >= 50 ? 'ok' : pctNum >= 20 ? 'warn' : 'crit';
+          const tdRem = h('td', 'val ' + statusCls, exactPct);
+          const sm = h('small', '', ` (расход: ${usedPct})`);
+          sm.style.color = 'var(--dim)';
+          sm.style.marginLeft = '4px';
+          tdRem.append(sm);
+          tr.append(tdRem);
+
+          const tdBar = h('td');
+          const pbar = h('div', 'limits-pbar');
+          const pfill = h('div', 'limits-pfill ' + statusCls);
+          pfill.style.width = Math.max(0, Math.min(100, pctNum)) + '%';
+          pfill.style.background = pctNum >= 50 ? '#73c991' : pctNum >= 20 ? '#e2c08d' : '#f14c4c';
+          pbar.title = `${exactPct} осталось (расход: ${usedPct})`;
+          pbar.append(pfill);
+          tdBar.append(pbar);
+          tr.append(tdBar);
+
+          tr.append(h('td', '', it.reset || '—'));
+          tbody.append(tr);
+        }
+      }
+      tbl.append(tbody);
+      contentBox.append(tbl);
+    }
+
+    const info = h('div', 'note');
+    let infoText = '';
+    if (data.age != null) {
+      const ageStr = data.age < 60 ? `${data.age} с назад` : `${Math.round(data.age / 60)} мин назад`;
+      infoText = `Данные получены через «agy /usage» (${ageStr}). Кешируются 5 минут.`;
+    } else {
+      infoText = 'Данные получены через «agy /usage». Кешируются 5 минут.';
+    }
+    info.textContent = infoText;
+    contentBox.append(info);
+
+    if (data.raw) {
+      const det = h('details');
+      det.style.marginTop = '8px';
+      const sum = h('summary', '', 'Сырой экран /usage');
+      sum.style.color = 'var(--dim)';
+      sum.style.cursor = 'pointer';
+      sum.style.fontSize = '12px';
+      det.append(sum);
+      const pre = h('pre', 'limits-raw', data.raw);
+      det.append(pre);
+      contentBox.append(det);
+    }
+  };
+
+  renderModalBody(d);
+
+  const row = h('div', 'btns');
+  const closeBtn = h('button', '', 'Закрыть');
+  const refreshBtn = h('button', 'primary', 'Обновить сейчас');
+  closeBtn.type = refreshBtn.type = 'button';
+  row.append(closeBtn, refreshBtn);
+  box.append(row);
+  ov.append(box);
+
+  const close = () => ov.remove();
+  closeBtn.onclick = close;
+  ov.onmousedown = e => { if (e.target === ov) close(); };
+  box.onkeydown = e => { if (e.key === 'Escape') close(); };
+
+  refreshBtn.onclick = async () => {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = '⏳ Опрос agy…';
+    const fresh = await fetchLimits(true);
+    refreshBtn.disabled = false;
+    refreshBtn.textContent = 'Обновить сейчас';
+    renderModalBody(fresh);
+  };
+
+  document.body.append(ov);
+}
+setInterval(() => { if (!document.hidden && S.project) fetchLimits(false); }, 300000);
 
 /* ───────── сплиттеры ───────── */
 function dragger(el, onmove) {
