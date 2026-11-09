@@ -15,7 +15,7 @@ services:
           cpus: '1.5'
     # Подключаем контейнер к существующей внешней сети вашего Xray-клиента
     networks:
-      - xray_network
+      - xray_client_default
     environment:
       - PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       # Жёсткий прокси через socks5h
@@ -65,6 +65,6 @@ services:
 
 # Наша внешняя сеть, в которой уже запущен xray_client
 networks:
-  xray_network:
+  xray_client_default:
     external: true
     name: xray_client_default
