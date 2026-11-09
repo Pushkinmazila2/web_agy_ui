@@ -26,7 +26,7 @@ MAX_WAIT = float(os.environ.get("TG_MAX_WAIT", "900"))  # дольше этог�
 EDIT_EVERY = float(os.environ.get("TG_EDIT_EVERY", "4"))
 LINES = int(os.environ.get("TG_LINES", "40"))
 
-COMMANDS = {"start", "help", "id", "projects", "setup", "bind", "unbind", "screen", "key", "stop",
+COMMANDS = {"start", "run", "help", "id", "projects", "setup", "bind", "unbind", "screen", "key", "stop",
             "restart", "git", "newproject"}
 HELP = (
     "<b>agy-бот</b>: проект = тема форума, сообщение в теме уходит агенту.\n\n"
@@ -34,6 +34,7 @@ HELP = (
     "/projects: список проектов\n"
     "/bind &lt;проект&gt;: привязать эту тему/чат к проекту, /unbind: отвязать\n"
     "/newproject &lt;имя&gt; [git-url]: создать проект (или клонировать) и тему для него\n"
+    "/start или /run: запустить сессию проекта и показать экран\n"
     "/screen: показать экран агента, /stop: Ctrl+C, /restart: перезапустить сессию\n"
     "/key &lt;клавиши&gt;: например <code>/key down down enter</code> (enter esc tab up down left right ctrl-c ctrl-d space backspace)\n"
     "/git: git status проекта\n\n"
@@ -46,6 +47,10 @@ KEYBOARD = {"inline_keyboard": [
      {"text": "y", "callback_data": "t:y"}, {"text": "n", "callback_data": "t:n"}],
     [{"text": "Tab", "callback_data": "k:tab"}, {"text": "Ctrl+C", "callback_data": "k:ctrl-c"},
      {"text": "🔄 Экран", "callback_data": "screen"}],
+]}
+STOPPED_KEYBOARD = {"inline_keyboard": [
+    [{"text": "▶️ Запустить сессию", "callback_data": "start_session"},
+     {"text": "🔄 Обновить", "callback_data": "screen"}],
 ]}
 
 
@@ -136,6 +141,8 @@ class Bot:
 
     def project_of(self, chat, thread):
         pid = self.state["topics"].get(self.key(chat, thread))
+        if not pid and thread:
+            pid = self.state["topics"].get(self.key(chat, 0))
         if not pid:
             return None
         for p in self.core.load_projects():
@@ -164,13 +171,16 @@ class Bot:
 
     async def show(self, chat, thread, proj, status="🟢 жду ввода", mid=None):
         s = self.core.sessions.get(proj["id"])
-        if not s or not s.alive:
-            status, s = "⚪ сессия не запущена", None
+        alive = bool(s and s.alive)
+        if not alive:
+            if status != "⛔ процесс завершён":
+                status = "⚪ сессия не запущена"
         text = self.render(proj, status, s)
+        kb = KEYBOARD if alive else STOPPED_KEYBOARD
         if mid:
-            await self.edit(chat, mid, text, KEYBOARD)
+            await self.edit(chat, mid, text, kb)
         else:
-            await self.send(chat, thread, text, KEYBOARD)
+            await self.send(chat, thread, text, kb)
 
     # ───────── слежение за агентом ─────────
 
@@ -179,7 +189,9 @@ class Bot:
         t = self.watchers.get(k)
         if t and not t.done():
             return  # уже следим: новые нажатия просто попадут в тот же вывод
-        self.watchers[k] = asyncio.create_task(self._watch(chat, thread, proj))
+        task = asyncio.create_task(self._watch(chat, thread, proj))
+        self.watchers[k] = task
+        task.add_done_callback(lambda _: self.watchers.pop(k, None) if self.watchers.get(k) is task else None)
 
     async def _watch(self, chat, thread, proj):
         s = self.core.sessions.get(proj["id"])
@@ -219,11 +231,36 @@ class Bot:
                 await self.delete(chat, progress)
             try:
                 await self.show(chat, thread, proj, status)
-            except TgError as e:
+            except Exception as e:
                 log("final send:", e)
 
+    async def wait_ready(self, s, timeout=5.0):
+        t0 = time.monotonic()
+        while time.monotonic() - t0 < timeout:
+            if not s.alive:
+                break
+            snap = self.core.snapshot(s, LINES)
+            if snap.strip():
+                if re.search(r"trust|доверя", snap, re.I) or ">" in snap or "?" in snap:
+                    return snap
+            await asyncio.sleep(0.15)
+        return self.core.snapshot(s, LINES) if s else ""
+
     async def forward(self, chat, thread, proj, text):
-        s = self.core.ensure_session(proj)
+        s = self.core.sessions.get(proj["id"])
+        is_new = not s or not s.alive
+        s = self.core.ensure_session(proj, cont=True)
+        if is_new:
+            ready_screen = await self.wait_ready(s)
+            if not s.alive:
+                await self.show(chat, thread, proj, status="⛔ процесс завершён")
+                await self.reply(chat, thread, "⚠️ Процесс завершился при запуске. Проверьте вывод выше.")
+                return
+            if re.search(r"trust|доверя", ready_screen, re.I) and re.search(r"\[y|\(y|yes|1\.", ready_screen, re.I):
+                await self.show(chat, thread, proj)
+                await self.reply(chat, thread, "⚠️ Проект требует подтверждения доверия. Нажмите <b>↵ Enter</b> или <b>y</b> выше, затем отправьте ваш запрос.")
+                return
+            await asyncio.sleep(0.3)
         await self.core.agent_send(s, text)
         self.watch(chat, thread, proj)
 
@@ -238,8 +275,18 @@ class Bot:
     async def cmd(self, name, arg, chat, thread, uid, is_group):
         r = lambda t: self.reply(chat, thread, t)
         proj = self.project_of(chat, thread)
-        if name in ("start", "help"):
+        if name == "help":
             return await r(HELP)
+        if name in ("start", "run"):
+            if not proj:
+                return await r(HELP)
+            if arg:
+                return await self.forward(chat, thread, proj, arg)
+            s = self.core.sessions.get(proj["id"])
+            if not s or not s.alive:
+                s = self.core.ensure_session(proj, cont=True)
+                await self.wait_ready(s)
+            return await self.show(chat, thread, proj)
         if name == "id":
             return await r(f"Ваш Telegram ID: <code>{uid}</code>\nЧат: <code>{chat}</code>")
         if name == "projects":
@@ -259,7 +306,7 @@ class Bot:
                     th = res["message_thread_id"]
                     self.bind(chat, th, p["id"])
                     made.append(p["id"])
-                    await self.send(chat, th, f"Тема проекта <b>{html.escape(p['name'])}</b>. Пишите агенту сюда.\n/screen: экран, /help: команды")
+                    await self.send(chat, th, f"Тема проекта <b>{html.escape(p['name'])}</b>. Пишите агенту сюда.\n/start: запустить сессию, /screen: экран, /help: команды", STOPPED_KEYBOARD)
                 except TgError as e:
                     errors.append(f"{p['id']}: {e}")
                     break
@@ -291,7 +338,7 @@ class Bot:
                 try:
                     th = (await self.call("createForumTopic", chat_id=chat, name=pid))["message_thread_id"]
                     self.bind(chat, th, pid)
-                    return await self.send(chat, th, f"Проект <b>{html.escape(pid)}</b> создан. Пишите агенту сюда.")
+                    return await self.send(chat, th, f"Проект <b>{html.escape(pid)}</b> создан. Пишите агенту сюда.\n/start: запустить сессию, /help: команды", STOPPED_KEYBOARD)
                 except TgError as e:
                     return await r(f"Проект создан, но тему создать не удалось: {html.escape(str(e))}\nПривяжите вручную: /bind {pid}")
             self.bind(chat, thread, pid)
@@ -308,14 +355,19 @@ class Bot:
             s = self.core.sessions.get(proj["id"])
             if s and s.alive:
                 await s.kill()
-            s = self.core.ensure_session(proj)
-            self.watch(chat, thread, proj)
-            return
+            s = self.core.ensure_session(proj, cont=True)
+            await self.wait_ready(s)
+            return await self.show(chat, thread, proj)
         if name in ("stop", "key"):
             keys = ["ctrl-c"] if name == "stop" else arg.split()
             if not keys:
                 return await r("Использование: /key down down enter")
-            s = self.core.ensure_session(proj)
+            s = self.core.sessions.get(proj["id"])
+            if not s or not s.alive:
+                if name == "stop":
+                    return await r("Сессия не запущена")
+                s = self.core.ensure_session(proj, cont=True)
+                await self.wait_ready(s)
             try:
                 self.core.agent_keys(s, keys)
             except Exception as e:
@@ -330,7 +382,7 @@ class Bot:
             return
         uid = (m.get("from") or {}).get("id")
         chat = m["chat"]["id"]
-        thread = m.get("message_thread_id") if m.get("is_topic_message") else 0
+        thread = m.get("message_thread_id") or 0
         is_group = m["chat"].get("type") in ("group", "supergroup")
         mt = re.match(r"^/(\w+)(?:@(\w+))?(?:\s+(.*))?$", text, re.S)
         cname = mt.group(1).lower() if mt and mt.group(1).lower() in COMMANDS and (not mt.group(2) or mt.group(2).lower() == self.me.lower()) else None
@@ -353,25 +405,36 @@ class Bot:
             return await self.call("answerCallbackQuery", callback_query_id=cb["id"])
         msg = cb.get("message") or {}
         chat = (msg.get("chat") or {}).get("id")
-        thread = msg.get("message_thread_id") if msg.get("is_topic_message") else 0
+        thread = msg.get("message_thread_id") or 0
         proj = self.project_of(chat, thread)
         data = cb.get("data", "")
         note = None
+        answered = False
         try:
             if not proj:
                 note = "Тема не привязана"
+            elif data == "start_session":
+                await self.call("answerCallbackQuery", callback_query_id=cb["id"], text="Запускаю сессию…")
+                answered = True
+                s = self.core.ensure_session(proj, cont=True)
+                await self.wait_ready(s)
+                await self.show(chat, thread, proj, mid=msg.get("message_id"))
             elif data == "screen":
-                await self.show(chat, thread, proj, mid=msg["message_id"])
+                await self.show(chat, thread, proj, mid=msg.get("message_id"))
             elif data.startswith("k:") or data.startswith("t:"):
-                s = self.core.ensure_session(proj)
-                if data[0] == "k":
-                    self.core.agent_keys(s, [data[2:]])
+                s = self.core.sessions.get(proj["id"])
+                if not s or not s.alive:
+                    note = "Сессия не запущена. Нажмите ▶️ Запустить"
                 else:
-                    await self.core.agent_send(s, data[2:], enter=False)
-                self.watch(chat, thread, proj)
+                    if data[0] == "k":
+                        self.core.agent_keys(s, [data[2:]])
+                    else:
+                        await self.core.agent_send(s, data[2:], enter=False)
+                    self.watch(chat, thread, proj)
         except Exception as e:
             note = (getattr(e, "text", None) or str(e))[:150]
-        await self.call("answerCallbackQuery", callback_query_id=cb["id"], **({"text": note} if note else {}))
+        if not answered:
+            await self.call("answerCallbackQuery", callback_query_id=cb["id"], **({"text": note} if note else {}))
 
     async def handle(self, u):
         try:
