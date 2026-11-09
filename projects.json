@@ -1,0 +1,8 @@
+[
+  {
+    "id": "example",
+    "name": "Пример пресета",
+    "path": "example",
+    "cmd": "bash /opt/webide/agy-run {AGY_FLAGS}; exec bash -l"
+  }
+]

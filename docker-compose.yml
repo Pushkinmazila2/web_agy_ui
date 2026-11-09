@@ -1,0 +1,70 @@
+services:
+  agy-cli:
+    build: .
+    image: agy-webide:latest
+    container_name: agy_minimal
+    restart: unless-stopped
+    init: true
+    ports:
+      # по умолчанию только localhost; для доступа по сети: WEBIDE_BIND=0.0.0.0 в .env (лучше за HTTPS-прокси)
+      - "${WEBIDE_BIND:-127.0.0.1}:7681:7681"
+    deploy:
+      resources:
+        limits:
+          memory: 1.8G
+          cpus: '1.5'
+    # Подключаем контейнер к существующей внешней сети вашего Xray-клиента
+    networks:
+      - xray_network
+    environment:
+      - PATH=/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      # Жёсткий прокси через socks5h
+      - HTTP_PROXY=socks5h://vless-client:1080
+      - HTTPS_PROXY=socks5h://vless-client:1080
+      - ALL_PROXY=socks5h://vless-client:1080
+      - http_proxy=socks5h://vless-client:1080
+      - https_proxy=socks5h://vless-client:1080
+      - all_proxy=socks5h://vless-client:1080
+      - NO_PROXY=localhost,127.0.0.1
+      - no_proxy=localhost,127.0.0.1
+      - PROXY_URL=socks5h://vless-client:1080
+      # Headless-режим для авторизации в консоли
+      - SSH_CONNECTION=127.0.0.1 56789 127.0.0.1 22
+      # Прямая ссылка на официальный архив agy
+      - AGY_DWNL_URL=${AGY_DWNL_URL:-https://github.com/google-antigravity/antigravity-cli/releases/download/1.5.3/agy_cli_linux_x64.tar.gz}
+      # webide
+      - HOST=0.0.0.0
+      - PORT=7681
+      - WORKSPACE=/workspace
+      - PROJECTS_FILE=/etc/webide/projects.json
+      - VENDOR_DIR=/root/.local/share/webide-vendor   # Monaco/xterm качаются сюда один раз (иначе CDN)
+      - AUTH_USER=${AUTH_USER:-agy}
+      - AUTH_PASS=${AUTH_PASS:?задайте AUTH_PASS в файле .env}
+      # Telegram-мост (выключен, пока нет TG_TOKEN)
+      - TG_TOKEN=${TG_TOKEN:-}
+      - TG_ALLOWED_USERS=${TG_ALLOWED_USERS:-}
+      - TG_PROXY=socks5h://vless-client:1080
+      - TG_STATE_FILE=/root/.antigravity/telegram.json
+      - TG_QUIET=${TG_QUIET:-5}
+      - WEBIDE_STATE=/root/.antigravity/webide.json      # флаги запуска agy по проектам
+      # git: имя/почта для коммитов и ssh через socks-прокси
+      - GIT_USER_NAME=${GIT_USER_NAME:-}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-}
+      - "GIT_SSH_COMMAND=ssh -o ProxyCommand='nc -X 5 -x vless-client:1080 %h %p' -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+    volumes:
+      - ./projects:/workspace                        # каждая подпапка = проект
+      - ./webide:/opt/webide:ro                      # правки webide: достаточно docker compose restart
+      - ./projects.json:/etc/webide/projects.json    # пресеты проектов
+      - ./agy-auth:/root/.antigravity                # авторизация agy + git-credentials
+      - ./state/gemini:/root/.gemini                 # settings.json agy (редактируется в окне «Настройки агента»)
+      - ./state/local:/root/.local                   # бинарник agy и его данные
+      - ./state/ssh:/root/.ssh                       # ssh-ключи для git (по желанию)
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+# Наша внешняя сеть, в которой уже запущен xray_client
+networks:
+  xray_network:
+    external: true
+    name: xray_client_default
