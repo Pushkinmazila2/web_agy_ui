@@ -536,6 +536,143 @@ def build_cmd(proj):
     return tpl.replace("{AGY_FLAGS}", " ".join(shlex.quote(x) for x in args))
 
 
+# ───────────────────────── лимиты (5 часов / неделя; Claude+GPT и Gemini) ─────────────────────────
+# Официального API у agy нет, единственный поддерживаемый источник это команда /usage (/quota) в его TUI.
+# Поэтому в фоне запускаем отдельный экземпляр agy, вводим /usage, читаем экран (pyte) и разбираем текст.
+# Формат вывода в документации не описан, поэтому парсер терпимый, а сырой вывод всегда доступен в UI.
+
+LIMITS_ON = os.environ.get("LIMITS_ENABLED", "1") != "0"
+LIMITS_TTL = float(os.environ.get("LIMITS_TTL", "300"))
+LIMITS_CMD = os.environ.get("LIMITS_CMD", 'exec "${AGY_BIN:-agy}"')
+_limits = {"t": 0.0, "data": None}
+_limits_lock = asyncio.Lock()
+
+_GROUPS = [("claude", re.compile(r"claude|anthropic|gpt|openai|sonnet|opus|haiku", re.I)), ("gemini", re.compile(r"gemini", re.I))]
+_WIN = re.compile(r"(?<!in )(?<!of )(?:\b(?:5|five)[\s-]*(?:hours?|hrs?|h)\b|\b(?:weekly|week|7[\s-]*days?)\b)", re.I)
+_PCT = re.compile(r"(\d{1,3}(?:[.,]\d+)?)\s*%")
+_RESET = re.compile(r"(?:resets?|refreshes?|renews?|обновится|сброс)\s*(?:in|at|on|в|через)?\s*:?\s*(.+?)\s*(?:[|;)\]]|\s{3,}|$)", re.I)
+_REMAIN = re.compile(r"remaining|left|available|осталось", re.I)
+_USED = re.compile(r"\bused\b|consumed|usage|израсходовано", re.I)
+_FILLED, _EMPTY = "█▓■●▰", "░▒□○▱"
+
+
+def _win_of(text):
+    return "week" if re.search(r"week|7", text, re.I) else "h5"
+
+
+def parse_usage(text):
+    """Достаёт из экрана /usage доли оставшегося лимита: {группа: {окно: {remaining, reset, assumed}}}."""
+    default_used = len(_USED.findall(text)) > len(_REMAIN.findall(text))
+    default_known = bool(_REMAIN.search(text) or _USED.search(text))
+    items, grp, win = {}, None, None
+    for line in text.split("\n"):
+        found = [g for g, rx in _GROUPS if rx.search(line)]
+        if len(found) == 1 and found[0] != grp:
+            grp, win = found[0], None
+        wins = list(_WIN.finditer(line))
+        if len(wins) >= 2:
+            segs = [(_win_of(m.group(0)), line[m.start():(wins[i + 1].start() if i + 1 < len(wins) else len(line))]) for i, m in enumerate(wins)]
+        elif wins:
+            win = _win_of(wins[0].group(0))
+            segs = [(win, line)]
+        else:
+            segs = [(win, line)] if win else []
+        for w, seg in segs:
+            frac, used_hint = None, None
+            m = _PCT.search(seg)
+            if m:
+                frac = min(float(m.group(1).replace(",", ".")), 100.0) / 100
+            else:
+                filled, empty = sum(seg.count(c) for c in _FILLED), sum(seg.count(c) for c in _EMPTY)
+                if filled + empty >= 5:
+                    frac = filled / (filled + empty)
+            if frac is None:
+                continue
+            if _REMAIN.search(seg) and not _USED.search(seg):
+                used = False
+            elif _USED.search(seg) and not _REMAIN.search(seg):
+                used = True
+            else:
+                used = default_used
+            known = bool(_REMAIN.search(seg) or _USED.search(seg)) or default_known
+            rm = _RESET.search(line[line.lower().find(seg.lower()[:12]):] if seg else line) or _RESET.search(seg)
+            item = {"remaining": round(1 - frac if used else frac, 3), "reset": rm.group(1).strip() if rm else None, "assumed": not known}
+            g = grp or "all"
+            cur = items.setdefault(g, {}).get(w)
+            if cur is None or item["remaining"] < cur["remaining"]:  # в семействе несколько моделей: берём худший
+                items[g][w] = item
+    return items
+
+
+async def probe_usage(cwd):
+    """(экран, ошибка). Запускает agy в pty, вводит /usage, читает экран и закрывает процесс."""
+    s = Session("_limits", cwd, LIMITS_CMD, 140, 60)
+    try:
+        await wait_idle(s, 2.5, 30)
+        if not s.alive:
+            return snapshot(s, 200), "agy завершился при запуске"
+        first = snapshot(s, 200)
+        if re.search(r"trust|доверя", first, re.I) and re.search(r"\[y|\(y|yes|1\.", first, re.I) and not re.search(r"/usage", first):
+            return first, "agy спрашивает доверие к папке: откройте проект и подтвердите в терминале"
+        await agent_send(s, "/usage")
+        await wait_idle(s, 3.0, 30)
+        a = snapshot(s, 200)
+        if parse_usage(a):
+            return a, None
+        # часть TUI сначала только подставляет команду из подсказки, второй Enter выполняет её
+        s.write(b"\r")
+        await wait_idle(s, 3.0, 30)
+        b = snapshot(s, 200)
+        return (b if len(b) >= len(a) else a), None
+    finally:
+        if s.alive:
+            await s.kill()
+
+
+async def get_limits(cwd, force=False):
+    async with _limits_lock:
+        now = time.time()
+        age = now - _limits["t"]
+        if _limits["data"] and age < (20 if force else LIMITS_TTL):
+            return {**_limits["data"], "age": round(age)}
+        try:
+            raw, err = await asyncio.wait_for(probe_usage(cwd), 120)
+        except Exception as e:  # noqa: BLE001
+            raw, err = "", f"не удалось запустить agy: {e!r}"
+        items = parse_usage(raw) if raw else {}
+        if not err and not items:
+            err = "в выводе /usage не найдено лимитов (формат не распознан, смотрите сырой вывод)"
+        data = {"disabled": False, "ok": bool(items), "error": err, "items": items, "raw": raw, "ts": now}
+        if items or not _limits["data"] or not _limits["data"]["items"]:
+            _limits["data"] = data
+        else:  # не затираем последний удачный результат неудачной попыткой
+            _limits["data"] = {**_limits["data"], "error": err}
+        _limits["t"] = now - (LIMITS_TTL - 60 if not items else 0)  # неудачу повторяем через минуту
+        return {**_limits["data"], "age": 0}
+
+
+def format_limits(d):
+    names, wl = {"claude": "Claude/GPT", "gemini": "Gemini", "all": "Всего"}, {"h5": "5ч", "week": "неделя"}
+    lines = []
+    for g in ("claude", "gemini", "all"):
+        for w in ("h5", "week"):
+            it = d["items"].get(g, {}).get(w)
+            if it:
+                lines.append(f"{names[g]}, {wl[w]}: осталось {round(it['remaining'] * 100)}%" + (f" (сброс: {it['reset']})" if it["reset"] else "") + (" ?" if it["assumed"] else ""))
+    return "\n".join(lines) or (d.get("error") or "нет данных")
+
+
+async def api_limits(request):
+    if not LIMITS_ON:
+        return web.json_response({"disabled": True})
+    pid = request.query.get("project")
+    try:
+        cwd = get_project(pid)["path"] if pid else str(WORKSPACE)
+    except web.HTTPNotFound:
+        cwd = str(WORKSPACE)
+    return web.json_response(await get_limits(cwd, request.query.get("refresh") == "1"))
+
+
 async def api_agy_get(request):
     cfg, exists, err = read_settings()
     out = {"path": str(SETTINGS_PATH), "exists": exists, "error": err, "schema": SCHEMA, "values": cfg}
@@ -1058,6 +1195,7 @@ def main():
         web.get("/api/stat", api_stat),
         web.get("/api/search", api_search),
         web.post("/api/term/kill", api_term_kill),
+        web.get("/api/limits", api_limits),
         web.get("/api/agy/settings", api_agy_get),
         web.put("/api/agy/settings", api_agy_put),
         web.put("/api/agy/flags", api_agy_flags),
