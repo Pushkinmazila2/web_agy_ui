@@ -6,32 +6,20 @@ PROXY="${PROXY_URL:-socks5h://vless-client:1080}"
 AGY_URL="${AGY_DWNL_URL:-}"
 log() { echo "[entrypoint] $*"; }
 
-# ── прокси для curl ──
+# ── прокси для curl и apt ──
 echo "proxy = \"$PROXY\"" > /root/.curlrc
-
-# Настройка прокси для apt (используем socks5, так как socks5h утилитой apt не поддерживается)
-APT_PROXY=$(echo "$PROXY" | sed 's/socks5h/socks5/')
-printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' "$APT_PROXY" "$APT_PROXY" > /etc/apt/apt.conf.d/80proxy
+printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' "$PROXY" "$PROXY" > /etc/apt/apt.conf.d/80proxy
 
 # ── пакеты (пропускается, если всё уже стоит) ──
 need=0
 for c in python3 git curl nc ssh tar; do command -v "$c" >/dev/null 2>&1 || need=1; done
-python3 -c 'import aiohttp, pyte, aiohttp_socks' 2>/dev/null || need=1
-
+python3 -c 'import aiohttp' 2>/dev/null || need=1
 if [ "$need" = 1 ]; then
   log "устанавливаю пакеты через прокси…"
-  # Обновляем apt и ставим системные пакеты (исправлена опечатка в имени пакета)
   if ! (apt-get update && apt-get install -yq --no-install-recommends \
-        python3 python3-aiohttp python3-pyte python3-aiohttp-socks git curl ca-certificates tar netcat-openbsd openssh-client less procps nano); then
-    log "Предупреждение: не удалось установить системные пакеты через apt, пробуем через pip..."
+        python3 python3-aiohttp git curl ca-certificates tar netcat-openbsd openssh-client less procps nano); then
+    log "ОШИБКА: не удалось установить пакеты (проверьте прокси $PROXY)"
   fi
-fi
-
-# ── Доустановка через pip (pip отлично поддерживает socks5h) ──
-if ! python3 -c 'import aiohttp, pyte, aiohttp_socks' 2>/dev/null; then
-  log "python-пакеты не нашлись в apt, ставлю через pip…"
-  command -v pip3 >/dev/null 2>&1 || apt-get install -yq --no-install-recommends python3-pip >/dev/null 2>&1
-  pip3 install --break-system-packages -q aiohttp pyte aiohttp-socks 2>&1 | tail -2
 fi
 
 # ── agy ──
@@ -53,12 +41,12 @@ if [ ! -x /root/.local/bin/agy ]; then
   fi
 fi
 
-# ── Monaco и xterm.js ──
+# ── Monaco и xterm.js: качаем из npm-реестра через прокси и отдаём локально (иначе webide возьмёт CDN) ──
 V="${VENDOR_DIR:-/opt/webide/vendor}"
 if [ ! -f "$V/monaco-editor/min/vs/loader.js" ] || [ ! -f "$V/xterm/lib/xterm.js" ] || [ ! -f "$V/addon-fit/lib/addon-fit.js" ]; then
   log "скачиваю Monaco и xterm.js в $V…"
   mkdir -p "$V"
-  fetch_pkg() { 
+  fetch_pkg() { # url имя-папки маски-внутри-package…
     local url="$1" name="$2"; shift 2
     local tmp; tmp=$(mktemp -d)
     if curl -fsSL "$url" | tar -xz -C "$tmp" --wildcards "$@"; then
@@ -80,7 +68,7 @@ git config --global credential.helper "store --file=/root/.antigravity/git-crede
 [ -n "${GIT_USER_NAME:-}" ]  && git config --global user.name  "$GIT_USER_NAME"
 [ -n "${GIT_USER_EMAIL:-}" ] && git config --global user.email "$GIT_USER_EMAIL"
 
-# ── ssh-ключи ──
+# ── ssh-ключи (если смонтированы) ──
 mkdir -p /root/.ssh && chmod 700 /root/.ssh
 chmod 600 /root/.ssh/id_* 2>/dev/null || true
 
