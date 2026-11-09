@@ -17,7 +17,7 @@ python3 -c 'import aiohttp, pyte, aiohttp_socks' 2>/dev/null || need=1
 if [ "$need" = 1 ]; then
   log "устанавливаю пакеты через прокси…"
   if ! (apt-get update && apt-get install -yq --no-install-recommends \
-        python3 python3-aiohttp python3-pyte python3-aiohttp-socks git curl ca-certificates tar netcat-openbsd openssh-client less procps nano); then
+        python3 python3-aiohttp python3-pyte python3-aiohttp-socks git curl ca-certificates tar netcat-openbsd openssh-client less procps nano aiohttp-socks); then
     log "ОШИБКА: не удалось установить пакеты (проверьте прокси $PROXY)"
   fi
 fi
