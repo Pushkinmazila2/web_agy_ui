@@ -4,21 +4,81 @@
 export DEBIAN_FRONTEND=noninteractive
 PROXY="${PROXY_URL:-socks5h://vless-client:1080}"
 AGY_URL="${AGY_DWNL_URL:-}"
-log() { echo "[entrypoint] $*"; }
 
-# ── прокси для curl и apt ──
+# Функция логирования в стиле Docker (ISO 8601)
+log() { 
+  echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] $*" 
+}
+log_err() { 
+  echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] [ERROR] $*" >&2 
+}
+
+# Функция проверки внешнего IP-адреса
+check_external_ip() {
+  local stage="$1"
+  local extra_args="$2"
+  log "Проверка внешнего IP ($stage)..."
+  
+  # Пробуем узнать IP через ipify с ограничением таймаута в 5 секунд
+  local ip
+  ip=$(curl $extra_args -fsSL --connect-timeout 5 https://ipify.org 2>/dev/null)
+  
+  if [ -n "$ip" ]; then
+    log "Текущий внешний IP [$stage]: $ip"
+  else
+    log_err "Не удалось определить IP [$stage] (таймаут или прокси еще не готов)"
+  fi
+}
+
+log "=== Инициализация контейнера ==="
+
+# 1. Проверяем IP ДО настройки прокси (напрямую)
+check_external_ip "ДО НАСТРОЙКИ ПРОКСИ" "--noproxy *"
+
+# ── Настройка прокси для curl ──
 echo "proxy = \"$PROXY\"" > /root/.curlrc
-printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' "$PROXY" "$PROXY" > /etc/apt/apt.conf.d/80proxy
+
+# ── Настройка прокси для apt (трансформируем socks5h в socks5, чтобы apt не падал) ──
+APT_PROXY=$(echo "$PROXY" | sed 's/socks5h/socks5/')
+printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' "$APT_PROXY" "$APT_PROXY" > /etc/apt/apt.conf.d/80proxy
+
+# 2. Проверяем IP ПОСЛЕ настройки прокси (теперь curl пойдет через .curlrc)
+check_external_ip "ПОСЛЕ НАСТРОЙКИ ПРОКСИ" ""
 
 # ── пакеты (пропускается, если всё уже стоит) ──
 need=0
 for c in python3 git curl nc ssh tar; do command -v "$c" >/dev/null 2>&1 || need=1; done
-python3 -c 'import aiohttp' 2>/dev/null || need=1
+
+# Проверяем библиотеки (убран pyte, так как его нет в базовом Dockerfile, добавлен python3-aiohttp-socks)
+python3 -c 'import aiohttp, aiohttp_socks' 2>/dev/null || need=1
+
 if [ "$need" = 1 ]; then
-  log "устанавливаю пакеты через прокси…"
-  if ! (apt-get update && apt-get install -yq --no-install-recommends \
-        python3 python3-aiohttp git curl ca-certificates tar netcat-openbsd openssh-client less procps nano); then
-    log "ОШИБКА: не удалось установить пакеты (проверьте прокси $PROXY)"
+  log "Некоторые пакеты отсутствуют. Устанавливаю зависимости через apt…"
+  
+  # Запуск apt-get update в тихом режиме
+  if apt-get update -yq >/dev/null 2>&1; then
+    if apt-get install -yq --no-install-recommends \
+        python3 python3-aiohttp python3-aiohttp-socks python3-pip git curl ca-certificates \
+        tar netcat-openbsd openssh-client less procps nano >/dev/null 2>&1; then
+      log "Системные пакеты и python3-aiohttp-socks успешно установлены."
+    else
+      log_err "Не удалось установить пакеты через apt. Пробуем резервный вариант с pip..."
+      need_pip=1
+    fi
+  else
+    log_err "apt-get update завершился с ошибкой. Проверяем доступность vless-client."
+    need_pip=1
+  fi
+fi
+
+# ── запасной путь через pip, если apt подвел (pip отлично переваривает socks5h) ──
+if ! python3 -c 'import aiohttp, aiohttp_socks' 2>/dev/null || [ "$need_pip" = 1 ]; then
+  log "Установка необходимых Python-модулей через pip3…"
+  command -v pip3 >/dev/null 2>&1 || apt-get install -yq --no-install-recommends python3-pip >/dev/null 2>&1
+  if pip3 install --break-system-packages -q aiohttp aiohttp-socks 2>/dev/null; then
+    log "Python-пакеты успешно доустановлены через pip."
+  else
+    log_err "КРИТИЧЕСКАЯ ОШИБКА: pip не смог установить aiohttp-socks. Проверьте сеть бота."
   fi
 fi
 
@@ -34,25 +94,27 @@ if [ ! -x /root/.local/bin/agy ]; then
        && mv /root/.local/bin/antigravity /root/.local/bin/agy \
        && chmod +x /root/.local/bin/agy; then
       /root/.local/bin/agy install || true
+      log "agy успешно установлен."
     else
-      log "ОШИБКА: не удалось скачать/распаковать agy"
+      log_err "не удалось скачать/распаковать agy"
     fi
     rm -f /tmp/agy.tar.gz
   fi
 fi
 
-# ── Monaco и xterm.js: качаем из npm-реестра через прокси и отдаём локально (иначе webide возьмёт CDN) ──
+# ── Monaco и xterm.js: качаем из npm-реестра через прокси и отдаём локально ──
 V="${VENDOR_DIR:-/opt/webide/vendor}"
 if [ ! -f "$V/monaco-editor/min/vs/loader.js" ] || [ ! -f "$V/xterm/lib/xterm.js" ] || [ ! -f "$V/addon-fit/lib/addon-fit.js" ]; then
   log "скачиваю Monaco и xterm.js в $V…"
   mkdir -p "$V"
-  fetch_pkg() { # url имя-папки маски-внутри-package…
+  fetch_pkg() { 
     local url="$1" name="$2"; shift 2
     local tmp; tmp=$(mktemp -d)
     if curl -fsSL "$url" | tar -xz -C "$tmp" --wildcards "$@"; then
       rm -rf "${V:?}/$name" && mv "$tmp/package" "$V/$name"
+      log "Компонент $name успешно скачан."
     else
-      log "не удалось скачать $name, будет использован CDN"
+      log_err "не удалось скачать $name, будет использован CDN"
     fi
     rm -rf "$tmp"
   }
