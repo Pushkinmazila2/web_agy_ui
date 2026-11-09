@@ -16,28 +16,42 @@ log_err() {
   echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] [ERROR] $*" >&2 
 }
 
-# Функция проверки внешнего IP-адреса
-check_external_ip() {
-  local stage="$1"
-  local extra_args="$2"
-  log "Данные прокси $HTTP_PROXY"
-  log "Проверка внешнего IP ($stage)..."
-  
-  # Пробуем узнать IP через ipify с ограничением таймаута в 5 секунд
-  local ip
-  ip=$(curl $extra_args -fsSL --connect-timeout 5 https://ipify.org 2>/dev/null)
-  
-  if [ -n "$ip" ]; then
-    log "Текущий внешний IP [$stage]: $ip"
-  else
-    log_err "Не удалось определить IP [$stage] (таймаут или прокси еще не готов)"
-  fi
-}
+#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+PROXY="${PROXY_URL:-socks5h://vless-client:1080}"
+AGY_URL="${AGY_DWNL_URL:-}"
+
+log() { echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] $*"; }
+log_err() { echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") [entrypoint] [ERROR] $*" >&2; }
 
 log "=== Инициализация контейнера ==="
 
-# 1. Проверяем IP ДО настройки прокси (напрямую)
-check_external_ip "ДО НАСТРОЙКИ ПРОКСИ" "--noproxy *"
+PROXY_HOST=$(echo "$PROXY" | sed -e 's/.*\/\///' -e 's/:.*//')
+PROXY_PORT=$(echo "$PROXY" | sed -e 's/.*://')
+
+log "Ожидание готовности прокси-сервера $PROXY_HOST:$PROXY_PORT..."
+while ! nc -z -w 2 "$PROXY_HOST" "$PROXY_PORT" 2>/dev/null; do
+  log "Прокси еще не отвечает на порту $PROXY_PORT, ждем 2 секунды..."
+  sleep 2
+done
+log "Прокси-контейнер ответил! Туннель доступен."
+
+echo "proxy = \"$PROXY\"" > /root/.curlrc
+
+APT_PROXY=$(echo "$PROXY" | sed 's/socks5h/socks5/')
+printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' "$APT_PROXY" "$APT_PROXY" > /etc/apt/apt.conf.d/80proxy
+
+unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy
+
+log "Проверка внешнего IP через прокси..."
+ip=$(curl -fsSL --connect-timeout 5 https://ipify.org 2>/dev/null)
+if [ -n "$ip" ]; then
+  log "Успех! Внешний IP через vless прокси: $ip"
+else
+  log_err "Прокси открыт, но трафик через него не идет (проверьте настройки vless-client/Xray)"
+fi
+
+log "=== Инициализация контейнера ==="
 
 # ── Настройка прокси для curl ──
 echo "proxy = \"$PROXY\"" > /root/.curlrc
