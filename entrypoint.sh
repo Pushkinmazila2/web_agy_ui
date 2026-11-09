@@ -17,6 +17,7 @@ log_err() {
 check_external_ip() {
   local stage="$1"
   local extra_args="$2"
+  log "Данные прокси $HTTP_PROXY"
   log "Проверка внешнего IP ($stage)..."
   
   # Пробуем узнать IP через ipify с ограничением таймаута в 5 секунд
