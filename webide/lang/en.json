@@ -1,0 +1,300 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "close": "Close",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "rename": "Rename",
+    "done": "Done"
+  },
+  "tabs": {
+    "files": "Files",
+    "search": "Search",
+    "git": "Git"
+  },
+  "projects": {
+    "new": "New Project",
+    "new_title": "New project / clone repository",
+    "url_label": "Git URL to clone (empty = empty directory)",
+    "url_ph": "https://github.com/user/repo.git",
+    "name_label": "Directory name (empty = from URL)",
+    "cloning": "Cloning…",
+    "creating": "Creating…",
+    "done": "Done",
+    "unsaved_close": "There are unsaved files. Close them?",
+    "none": "No projects: click ＋ to create or clone a project"
+  },
+  "files": {
+    "new_file": "New file…",
+    "new_file_title": "New file",
+    "new_file_ph": "name.ext or dir/name.ext",
+    "new_dir": "New folder…",
+    "new_dir_title": "New folder",
+    "new_dir_ph": "folder name",
+    "rename": "Rename… (F2)",
+    "rename_title": "Rename / move",
+    "rename_btn": "Rename",
+    "delete": "Delete (Del)",
+    "delete_confirm": "Delete '{path}'{all}? This cannot be undone.",
+    "with_contents": " with all contents",
+    "save_dirty_first": "Save modified files in this folder/file first",
+    "save_error": "Save error: ",
+    "open_error": "Failed to open: ",
+    "unsaved_close": "{path} is not saved. Close?",
+    "conflict_overwrite": "File changed on disk (possibly by agent). Overwrite?"
+  },
+  "editor": {
+    "diff_title": "Compare with HEAD",
+    "diff_btn": "Δ Diff",
+    "rainbow_title": "Colored indents (indent-rainbow)",
+    "rainbow_btn": "Indents",
+    "wrap_title": "Word wrap",
+    "wrap_btn": "Wrap",
+    "empty": "Select a file on the left",
+    "not_git": "This is not a git repository",
+    "close_unsaved": "Close without saving?",
+    "banner_deleted": "File was deleted or moved on disk.",
+    "banner_conflict": "File was modified on disk (by agent?), and there are unsaved edits in the editor.",
+    "btn_close_tab": "Close tab",
+    "btn_save_again": "Save again",
+    "btn_reload_disk": "Reload from disk",
+    "btn_keep_mine": "Keep my changes",
+    "open_file_first": "Open a file first"
+  },
+  "search": {
+    "placeholder": "Search in project files (Ctrl+Shift+F)",
+    "searching": "Searching…",
+    "regex_error": "Regex error: {err}",
+    "not_found": "Nothing found",
+    "files_count": "Files ({count})",
+    "truncated": "First results shown — refine query"
+  },
+  "git": {
+    "no_repo": "There is no git repository in this project.",
+    "init_btn": "Initialize repository",
+    "connect_hint": "Connect to existing: click ＋ above → specify URL, repo will be cloned into a new project.",
+    "token_btn": "🔑 Git access token",
+    "token_title": "Token for https access",
+    "token_saved": "Token saved",
+    "cred_host": "Host",
+    "cred_user": "Username",
+    "cred_token": "Token / password",
+    "new_branch_title": "New branch",
+    "new_branch_label": "Branch name (from current)",
+    "remote_btn": "Add remote address…",
+    "remote_title": "Remote address (origin)",
+    "remote_ph": "https://github.com/user/repo.git",
+    "commit_ph": "Commit message (Ctrl+Enter)",
+    "commit_btn": "✓ Commit",
+    "history": "History",
+    "no_commits": "No commits",
+    "staged": "Staged",
+    "changes": "Changes",
+    "unstage_one": "Unstage",
+    "unstage_all": "Unstage all",
+    "stage_one": "Stage",
+    "stage_all": "Stage all",
+    "discard_one": "Discard changes",
+    "discard_confirm": "Discard changes in '{path}'? This cannot be undone.",
+    "file_deleted": "File deleted",
+    "no_changes": "No changes",
+    "truncated": "First 3000 files shown",
+    "publish_branch": "☁ Publish branch",
+    "sync": "⇅ Sync",
+    "sync_arrows": "⇅ Sync {arrows}",
+    "enter_commit_msg": "Enter commit message",
+    "nothing_staged_commit_all": "Nothing staged. Commit all changes?",
+    "remote_branch_tag": " (remote)"
+  },
+  "term": {
+    "settings_btn": "⚙ Agent settings",
+    "settings_title": "agy settings and project launch flags",
+    "restart_btn": "Restart session",
+    "restart_confirm": "Kill current session and restart?",
+    "process_ended": "[process terminated — press any key to restart]"
+  },
+  "settings": {
+    "title": "Agent Settings",
+    "project_flags": "Project '{name}': launch flags",
+    "no_placeholder": "Preset cmd lacks {AGY_FLAGS}, flags won't apply. Replace agy command in projects.json with {AGY_FLAGS}.",
+    "extra_args": "Extra arguments",
+    "extra_args_ph": "--flag value",
+    "model_ph": "empty = from global settings",
+    "default_val": "default",
+    "effort_ph": "e.g. high",
+    "sandbox_label": "--sandbox (terminal sandbox)",
+    "skip_label": "--dangerously-skip-permissions (without confirmations!)",
+    "add_dirs_label": "--add-dir (additional folders, one per line)",
+    "global_title": "Global settings (for all projects)",
+    "file_hint": "File: {path}. agy stores only differences from default values, so defaults are removed from the file.",
+    "file_read_error": "⚠ File cannot be read: {err}",
+    "save": "Save",
+    "save_restart": "Save and restart agent (-c)",
+    "json_err": "Invalid JSON in advanced settings: {err}",
+    "conflict_overwrite": "{err}\n\nOverwrite file?",
+    "saved_restarted": "Saved, agent restarted with continued dialogue",
+    "saved": "Saved. Settings will apply on next agent launch",
+    "default_hint": "default: {val}",
+    "not_set": "(not set)",
+    "group": {
+      "Поведение": "Behavior",
+      "Интерфейс": "Interface",
+      "Ввод": "Input",
+      "Прочее": "Other",
+      "Расширенные (JSON-объекты)": "Advanced (JSON objects)",
+      "behavior": "Behavior",
+      "ui": "Interface",
+      "input": "Input",
+      "other": "Other",
+      "advanced": "Advanced (JSON objects)"
+    },
+    "schema": {
+      "agentMode": {
+        "label": "Agent mode",
+        "help": "auto is unavailable for business/enterprise accounts"
+      },
+      "toolPermission": {
+        "label": "Tool permission"
+      },
+      "artifactReviewPolicy": {
+        "label": "Artifact review policy"
+      },
+      "enableTerminalSandbox": {
+        "label": "Terminal sandbox"
+      },
+      "allowNonWorkspaceAccess": {
+        "label": "Non-workspace access"
+      },
+      "model": {
+        "label": "Model",
+        "help": "name as in /model; empty = default"
+      },
+      "modelProvider": {
+        "label": "Model provider",
+        "help": "\"gemini\" = directly via GEMINI_API_KEY"
+      },
+      "queuedMessages": {
+        "label": "Queued messages during run"
+      },
+      "trustedWorkspaces": {
+        "label": "Trusted workspaces",
+        "help": "one per line"
+      },
+      "colorScheme": {
+        "label": "Color scheme"
+      },
+      "verbosity": {
+        "label": "Verbosity"
+      },
+      "runningLightSpeed": {
+        "label": "Running animation"
+      },
+      "altScreenMode": {
+        "label": "Alt-screen mode",
+        "help": "never = history stays in terminal scrollback"
+      },
+      "pickerGrouping": {
+        "label": "Picker grouping"
+      },
+      "hideActiveItems": {
+        "label": "Hide active items"
+      },
+      "copyOnSelect": {
+        "label": "Copy on select"
+      },
+      "useTerminalCursor": {
+        "label": "Terminal cursor"
+      },
+      "clearScrollbackOnResize": {
+        "label": "Clear scrollback on resize"
+      },
+      "showTips": {
+        "label": "Show tips"
+      },
+      "showFeedbackSurvey": {
+        "label": "Feedback survey"
+      },
+      "notifications": {
+        "label": "Notifications"
+      },
+      "editor": {
+        "label": "Editor",
+        "help": "auto, vim, emacs or custom command"
+      },
+      "editorMode": {
+        "label": "Input mode"
+      },
+      "vimInsertFirst": {
+        "label": "Vim: start in insert"
+      },
+      "historySize": {
+        "label": "Input history size",
+        "help": "-1 = keep all, 0 = clear"
+      },
+      "disableSlashCommands": {
+        "label": "Disable slash commands"
+      },
+      "useG1Credits": {
+        "label": "Use G1 credits"
+      }
+    }
+  },
+  "limits": {
+    "title": "agy Request Limits",
+    "loading": "Limits: checking…",
+    "loading_tip": "Querying agy /usage in background…",
+    "err_chip": "⚠ Limits",
+    "err_default": "Limits not found in /usage output",
+    "click_details": "Click for details",
+    "click_details_refresh": "Click for details and refresh",
+    "refresh_now": "Refresh now",
+    "refreshing": "⏳ Querying agy…",
+    "col_model": "Model / Group",
+    "col_window": "Window",
+    "col_left": "Remaining",
+    "col_bar": "Progress",
+    "col_reset": "Reset",
+    "rem": "{pct} remaining",
+    "used": "used: {pct}",
+    "reset": "reset: {val}",
+    "assumed": " [approx.]",
+    "info": "Data obtained via 'agy /usage' ({age}). Cached for 5 minutes.",
+    "info_no_age": "Data obtained via 'agy /usage'. Cached for 5 minutes.",
+    "sec_ago": "{n}s ago",
+    "min_ago": "{n}m ago",
+    "raw_screen": "Raw /usage screen",
+    "groups": {
+      "claude": "Claude / GPT",
+      "gemini": "Gemini",
+      "all": "All models"
+    },
+    "windows": {
+      "h5": "5 hours",
+      "week": "1 week"
+    },
+    "windows_short": {
+      "h5": "5h",
+      "week": "wk"
+    },
+    "not_loaded": "Data not loaded yet",
+    "used_paren": " (used: {pct})"
+  },
+  "lang": {
+    "btn": "🌐 EN",
+    "title": "Interface Language / Язык интерфейса",
+    "ru": "🇷🇺 Русский (Russian)",
+    "en": "🇬🇧 English",
+    "custom": "📁 Custom Translation",
+    "custom_name": "Custom ({name})",
+    "download_en": "📥 Download template (en.json)",
+    "upload_custom": "📤 Upload translation (.json)",
+    "reset_custom": "🗑 Remove custom translation",
+    "applied": "Interface language updated",
+    "invalid_json": "Invalid JSON file format",
+    "custom_loaded": "Custom translation loaded and applied successfully!",
+    "custom_cleared": "Custom translation removed"
+  }
+}

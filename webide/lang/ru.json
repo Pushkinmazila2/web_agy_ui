@@ -1,0 +1,300 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "create": "Создать",
+    "close": "Закрыть",
+    "refresh": "Обновить",
+    "delete": "Удалить",
+    "rename": "Переименовать",
+    "done": "Готово"
+  },
+  "tabs": {
+    "files": "Файлы",
+    "search": "Поиск",
+    "git": "Git"
+  },
+  "projects": {
+    "new": "Новый проект",
+    "new_title": "Новый проект / клонировать репозиторий",
+    "url_label": "Git URL для клонирования (пусто = пустая папка)",
+    "url_ph": "https://github.com/user/repo.git",
+    "name_label": "Имя папки (пусто = из URL)",
+    "cloning": "Клонирую…",
+    "creating": "Создаю…",
+    "done": "Готово",
+    "unsaved_close": "Есть несохранённые файлы. Закрыть их?",
+    "none": "Проектов нет: нажмите ＋ и создайте или клонируйте проект"
+  },
+  "files": {
+    "new_file": "Новый файл…",
+    "new_file_title": "Новый файл",
+    "new_file_ph": "name.ext или dir/name.ext",
+    "new_dir": "Новая папка…",
+    "new_dir_title": "Новая папка",
+    "new_dir_ph": "имя папки",
+    "rename": "Переименовать… (F2)",
+    "rename_title": "Переименовать / переместить",
+    "rename_btn": "Переименовать",
+    "delete": "Удалить (Del)",
+    "delete_confirm": "Удалить «{path}»{all}? Это необратимо.",
+    "with_contents": " со всем содержимым",
+    "save_dirty_first": "Сначала сохраните изменённые файлы в этой папке/файле",
+    "save_error": "Ошибка сохранения: ",
+    "open_error": "Не удалось открыть: ",
+    "unsaved_close": "{path} не сохранён. Закрыть?",
+    "conflict_overwrite": "Файл изменён на диске (возможно, агентом). Перезаписать?"
+  },
+  "editor": {
+    "diff_title": "Сравнить с HEAD",
+    "diff_btn": "Δ Diff",
+    "rainbow_title": "Цветные отступы (indent-rainbow)",
+    "rainbow_btn": "Отступы",
+    "wrap_title": "Перенос строк",
+    "wrap_btn": "Перенос",
+    "empty": "Выберите файл слева",
+    "not_git": "Это не git-репозиторий",
+    "close_unsaved": "Закрыть без сохранения?",
+    "banner_deleted": "Файл удалён или перемещён на диске.",
+    "banner_conflict": "Файл изменён на диске (агентом?), а в редакторе есть несохранённые правки.",
+    "btn_close_tab": "Закрыть вкладку",
+    "btn_save_again": "Сохранить заново",
+    "btn_reload_disk": "Загрузить с диска",
+    "btn_keep_mine": "Оставить мои правки",
+    "open_file_first": "Откройте файл"
+  },
+  "search": {
+    "placeholder": "Поиск по файлам проекта (Ctrl+Shift+F)",
+    "searching": "Поиск…",
+    "regex_error": "Ошибка регулярки: {err}",
+    "not_found": "Ничего не найдено",
+    "files_count": "Файлы ({count})",
+    "truncated": "Показаны первые результаты — уточните запрос"
+  },
+  "git": {
+    "no_repo": "В этом проекте нет git-репозитория.",
+    "init_btn": "Инициализировать репозиторий",
+    "connect_hint": "Подключиться к существующему: кнопка ＋ сверху → указать URL, репозиторий будет склонирован в новый проект.",
+    "token_btn": "🔑 Токен для доступа к git",
+    "token_title": "Токен для https-доступа",
+    "token_saved": "Токен сохранён",
+    "cred_host": "Хост",
+    "cred_user": "Логин",
+    "cred_token": "Токен / пароль",
+    "new_branch_title": "Новая ветка",
+    "new_branch_label": "Имя ветки (от текущей)",
+    "remote_btn": "Добавить адрес remote…",
+    "remote_title": "Адрес remote (origin)",
+    "remote_ph": "https://github.com/user/repo.git",
+    "commit_ph": "Сообщение коммита (Ctrl+Enter)",
+    "commit_btn": "✓ Commit",
+    "history": "История",
+    "no_commits": "Коммитов нет",
+    "staged": "Индекс",
+    "changes": "Изменения",
+    "unstage_one": "Убрать из индекса",
+    "unstage_all": "Убрать всё из индекса",
+    "stage_one": "В индекс",
+    "stage_all": "Добавить всё в индекс",
+    "discard_one": "Отменить изменения",
+    "discard_confirm": "Отменить изменения в «{path}»? Это необратимо.",
+    "file_deleted": "Файл удалён",
+    "no_changes": "Изменений нет",
+    "truncated": "Показаны первые 3000 файлов",
+    "publish_branch": "☁ Опубликовать ветку",
+    "sync": "⇅ Синхронизировать",
+    "sync_arrows": "⇅ Синхронизировать {arrows}",
+    "enter_commit_msg": "Введите сообщение коммита",
+    "nothing_staged_commit_all": "Ничего не добавлено в индекс. Закоммитить все изменения?",
+    "remote_branch_tag": " (удалённая)"
+  },
+  "term": {
+    "settings_btn": "⚙ Настройки агента",
+    "settings_title": "Настройки agy и флаги запуска проекта",
+    "restart_btn": "Перезапустить сессию",
+    "restart_confirm": "Убить текущую сессию и запустить заново?",
+    "process_ended": "[процесс завершён — нажмите любую клавишу для перезапуска]"
+  },
+  "settings": {
+    "title": "Настройки агента",
+    "project_flags": "Проект «{name}»: флаги запуска",
+    "no_placeholder": "В cmd пресета этого проекта нет {AGY_FLAGS}, поэтому флаги не применятся. Замените запуск agy в projects.json на {AGY_FLAGS}.",
+    "extra_args": "Дополнительные аргументы",
+    "extra_args_ph": "--flag значение",
+    "model_ph": "пусто = из общих настроек",
+    "default_val": "по умолчанию",
+    "effort_ph": "например high",
+    "sandbox_label": "--sandbox (песочница терминала)",
+    "skip_label": "--dangerously-skip-permissions (без подтверждений!)",
+    "add_dirs_label": "--add-dir (дополнительные папки, по одной в строке)",
+    "global_title": "Общие настройки (для всех проектов)",
+    "file_hint": "Файл: {path}. agy хранит только отличия от значений по умолчанию, поэтому значения по умолчанию из файла убираются.",
+    "file_read_error": "⚠ Файл сейчас не читается: {err}",
+    "save": "Сохранить",
+    "save_restart": "Сохранить и перезапустить агента (-c)",
+    "json_err": "Некорректный JSON в расширенных настройках: {err}",
+    "conflict_overwrite": "{err}\n\nПерезаписать файл?",
+    "saved_restarted": "Сохранено, агент перезапущен с продолжением диалога",
+    "saved": "Сохранено. Настройки применятся при следующем запуске агента",
+    "default_hint": "по умолчанию: {val}",
+    "not_set": "(не задано)",
+    "group": {
+      "Поведение": "Поведение",
+      "Интерфейс": "Интерфейс",
+      "Ввод": "Ввод",
+      "Прочее": "Прочее",
+      "Расширенные (JSON-объекты)": "Расширенные (JSON-объекты)",
+      "behavior": "Поведение",
+      "ui": "Интерфейс",
+      "input": "Ввод",
+      "other": "Прочее",
+      "advanced": "Расширенные (JSON-объекты)"
+    },
+    "schema": {
+      "agentMode": {
+        "label": "Режим агента",
+        "help": "auto недоступен для business/enterprise-аккаунтов"
+      },
+      "toolPermission": {
+        "label": "Подтверждение инструментов"
+      },
+      "artifactReviewPolicy": {
+        "label": "Ревью артефактов"
+      },
+      "enableTerminalSandbox": {
+        "label": "Песочница терминала"
+      },
+      "allowNonWorkspaceAccess": {
+        "label": "Доступ вне рабочей папки"
+      },
+      "model": {
+        "label": "Модель",
+        "help": "название как в /model; пусто = по умолчанию"
+      },
+      "modelProvider": {
+        "label": "Провайдер модели",
+        "help": "\"gemini\" = напрямую через GEMINI_API_KEY"
+      },
+      "queuedMessages": {
+        "label": "Сообщения во время работы"
+      },
+      "trustedWorkspaces": {
+        "label": "Доверенные папки",
+        "help": "по одной в строке"
+      },
+      "colorScheme": {
+        "label": "Цветовая схема"
+      },
+      "verbosity": {
+        "label": "Подробность вывода"
+      },
+      "runningLightSpeed": {
+        "label": "Анимация «работает»"
+      },
+      "altScreenMode": {
+        "label": "Alt-screen",
+        "help": "never = история остаётся в буфере терминала"
+      },
+      "pickerGrouping": {
+        "label": "Группировка в пикерах"
+      },
+      "hideActiveItems": {
+        "label": "Скрывать активные элементы"
+      },
+      "copyOnSelect": {
+        "label": "Копировать при выделении"
+      },
+      "useTerminalCursor": {
+        "label": "Курсор терминала"
+      },
+      "clearScrollbackOnResize": {
+        "label": "Очищать историю при смене размера"
+      },
+      "showTips": {
+        "label": "Подсказки"
+      },
+      "showFeedbackSurvey": {
+        "label": "Опрос об отзывах"
+      },
+      "notifications": {
+        "label": "Уведомления"
+      },
+      "editor": {
+        "label": "Редактор",
+        "help": "auto, vim, emacs или своя команда"
+      },
+      "editorMode": {
+        "label": "Режим ввода"
+      },
+      "vimInsertFirst": {
+        "label": "Vim: начинать в insert"
+      },
+      "historySize": {
+        "label": "Размер истории ввода",
+        "help": "-1 = хранить всё, 0 = очищать"
+      },
+      "disableSlashCommands": {
+        "label": "Отключить слэш-команды"
+      },
+      "useG1Credits": {
+        "label": "Использовать G1-кредиты"
+      }
+    }
+  },
+  "limits": {
+    "title": "Лимиты запросов agy",
+    "loading": "Лимиты: опрос…",
+    "loading_tip": "Опрос agy /usage в фоне…",
+    "err_chip": "⚠ Лимиты",
+    "err_default": "Лимиты не найдены в выводе /usage",
+    "click_details": "Нажмите для подробностей",
+    "click_details_refresh": "Нажмите для подробностей и обновления",
+    "refresh_now": "Обновить сейчас",
+    "refreshing": "⏳ Опрос agy…",
+    "col_model": "Модель / Группа",
+    "col_window": "Окно",
+    "col_left": "Осталось",
+    "col_bar": "Шкала",
+    "col_reset": "Сброс",
+    "rem": "осталось {pct}",
+    "used": "расход: {pct}",
+    "reset": "сброс: {val}",
+    "assumed": " [прибл.]",
+    "info": "Данные получены через «agy /usage» ({age}). Кешируются 5 минут.",
+    "info_no_age": "Данные получены через «agy /usage». Кешируются 5 минут.",
+    "sec_ago": "{n} с назад",
+    "min_ago": "{n} мин назад",
+    "raw_screen": "Сырой экран /usage",
+    "groups": {
+      "claude": "Claude / GPT",
+      "gemini": "Gemini",
+      "all": "Все модели"
+    },
+    "windows": {
+      "h5": "5 часов",
+      "week": "1 неделя"
+    },
+    "windows_short": {
+      "h5": "5ч",
+      "week": "нед"
+    },
+    "not_loaded": "Данные ещё не загружены",
+    "used_paren": " (расход: {pct})"
+  },
+  "lang": {
+    "btn": "🌐 RU",
+    "title": "Язык интерфейса / Interface Language",
+    "ru": "🇷🇺 Русский",
+    "en": "🇬🇧 English",
+    "custom": "📁 Пользовательский перевод",
+    "custom_name": "Пользовательский ({name})",
+    "download_en": "📥 Скачать шаблон (en.json)",
+    "upload_custom": "📤 Загрузить свой перевод (.json)",
+    "reset_custom": "🗑 Сбросить пользовательский перевод",
+    "applied": "Язык интерфейса изменён",
+    "invalid_json": "Неверный формат JSON файла",
+    "custom_loaded": "Пользовательский перевод успешно загружен и применён!",
+    "custom_cleared": "Пользовательский перевод удалён"
+  }
+}

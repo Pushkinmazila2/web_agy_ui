@@ -1174,6 +1174,21 @@ LOCAL = {"MONACO": "/vendor/monaco-editor/min", "XTERM": "/vendor/xterm", "FIT":
 LOCAL_MARKERS = ["monaco-editor/min/vs/loader.js", "xterm/lib/xterm.js", "addon-fit/lib/addon-fit.js"]
 
 
+async def api_lang_get(request):
+    name = request.match_info.get("name", "")
+    if not re.match(r"^[a-zA-Z0-9_\-]+\.json$", name):
+        raise web.HTTPBadRequest(text="Invalid language file name")
+    path = (BASE / "lang" / name).resolve()
+    if not path.is_file() or not str(path).startswith(str((BASE / "lang").resolve())):
+        raise web.HTTPNotFound()
+    return web.Response(
+        text=path.read_text(encoding="utf-8"),
+        content_type="application/json",
+        charset="utf-8",
+        headers={"Cache-Control": "no-cache"},
+    )
+
+
 async def index(request):
     """Если библиотеки скачаны в VENDOR_DIR, отдаём их локально, иначе берём с CDN."""
     local = all((VENDOR / m).is_file() for m in LOCAL_MARKERS)
@@ -1211,6 +1226,8 @@ def main():
         web.post("/api/git/op", api_git_op),
         web.post("/api/git/credentials", api_git_credentials),
         web.post("/api/project/new", api_project_new),
+        web.get("/lang/{name}", api_lang_get),
+        web.get("/api/lang/{name}", api_lang_get),
         web.get("/ws/term", ws_term),
     ])
     import tgbot  # Telegram-мост; включается переменной TG_TOKEN

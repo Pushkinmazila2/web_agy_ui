@@ -157,6 +157,14 @@
   .dlg .hint { color:var(--dim); margin:0; } .dlg .hint code { color:var(--fg); }
   .dlg input[type=text], .dlg input[type=number], .dlg select, .dlg textarea { width:100%; color:var(--fg); }
   .dlg input { color:var(--fg); } .dlg .btns { display:flex; justify-content:flex-end; gap:8px; }
+
+  /* языковая модалка */
+  .lang-list { display:flex; flex-direction:column; gap:6px; margin:8px 0; }
+  .lang-opt { display:flex; align-items:center; gap:8px; padding:7px 10px; background:#38383d; border:1px solid #484848; border-radius:3px; cursor:pointer; font-weight:500; }
+  .lang-opt:hover { background:#45454a; }
+  .lang-opt.active { border-color:var(--accent); background:#094771; color:#fff; }
+  .lang-tools { display:flex; flex-direction:column; gap:6px; margin:8px 0 4px; padding-top:10px; border-top:1px solid var(--line); }
+  .lang-tools button { text-align:left; }
 </style>
 </head>
 <body>
@@ -164,26 +172,26 @@
   <div id="side">
     <div id="side-top">
       <select id="proj"></select>
-      <button id="newproj" title="Новый проект / клонировать репозиторий">＋</button>
+      <button id="newproj" data-i18n-title="projects.new_title" title="Новый проект / клонировать репозиторий">＋</button>
     </div>
     <div id="side-tabs">
-      <button data-tab="files" class="on">Файлы</button>
-      <button data-tab="search">Поиск</button>
-      <button data-tab="git">Git<span id="gitbadge" class="badge" style="display:none"></span></button>
+      <button data-tab="files" class="on" data-i18n="tabs.files">Файлы</button>
+      <button data-tab="search" data-i18n="tabs.search">Поиск</button>
+      <button data-tab="git"><span data-i18n="tabs.git">Git</span><span id="gitbadge" class="badge" style="display:none"></span></button>
     </div>
 
     <div id="p-files" class="panel on">
       <div id="files-bar">
-        <button id="b-newfile" title="Новый файл">📄＋</button>
-        <button id="b-newdir" title="Новая папка">📁＋</button>
-        <button id="refresh" title="Обновить">⟳</button>
+        <button id="b-newfile" data-i18n-title="files.new_file_title" title="Новый файл">📄＋</button>
+        <button id="b-newdir" data-i18n-title="files.new_dir_title" title="Новая папка">📁＋</button>
+        <button id="refresh" data-i18n-title="common.refresh" title="Обновить">⟳</button>
       </div>
       <div id="tree" tabindex="0"></div>
     </div>
 
     <div id="p-search" class="panel">
       <div id="search-box">
-        <input id="q" placeholder="Поиск по файлам проекта (Ctrl+Shift+F)">
+        <input id="q" data-i18n-ph="search.placeholder" placeholder="Поиск по файлам проекта (Ctrl+Shift+F)">
         <label class="opt"><input type="checkbox" id="o-case">Aa</label>
         <label class="opt"><input type="checkbox" id="o-regex">.*</label>
       </div>
@@ -192,22 +200,22 @@
 
     <div id="p-git" class="panel">
       <div id="git-norepo" class="pad" style="display:none">
-        <div class="note" style="padding:0">В этом проекте нет git-репозитория.</div>
-        <button id="g-init" class="primary">Инициализировать репозиторий</button>
-        <div class="note" style="padding:0">Подключиться к существующему: кнопка ＋ сверху → указать URL, репозиторий будет склонирован в новый проект.</div>
-        <button id="g-cred0">🔑 Токен для доступа к git</button>
+        <div class="note" style="padding:0" data-i18n="git.no_repo">В этом проекте нет git-репозитория.</div>
+        <button id="g-init" class="primary" data-i18n="git.init_btn">Инициализировать репозиторий</button>
+        <div class="note" style="padding:0" data-i18n="git.connect_hint">Подключиться к существующему: кнопка ＋ сверху → указать URL, репозиторий будет склонирован в новый проект.</div>
+        <button id="g-cred0" data-i18n="git.token_btn">🔑 Токен для доступа к git</button>
       </div>
       <div id="git-repo" style="display:none">
         <div class="pad">
-          <div class="line"><select id="branch"></select><button id="g-newbranch" title="Новая ветка">⑂＋</button><button id="g-cred" title="Токен для https-доступа">🔑</button></div>
+          <div class="line"><select id="branch"></select><button id="g-newbranch" data-i18n-title="git.new_branch_title" title="Новая ветка">⑂＋</button><button id="g-cred" data-i18n-title="git.token_title" title="Токен для https-доступа">🔑</button></div>
           <button id="g-sync" class="primary"></button>
           <div class="line"><button id="g-pull" style="flex:1">↓ Pull</button><button id="g-push" style="flex:1">↑ Push</button><button id="g-fetch" style="flex:1">Fetch</button></div>
-          <button id="g-remote">Добавить адрес remote…</button>
-          <textarea id="g-msg" placeholder="Сообщение коммита (Ctrl+Enter)"></textarea>
-          <button id="g-commit" class="primary">✓ Commit</button>
+          <button id="g-remote" data-i18n="git.remote_btn">Добавить адрес remote…</button>
+          <textarea id="g-msg" data-i18n-ph="git.commit_ph" placeholder="Сообщение коммита (Ctrl+Enter)"></textarea>
+          <button id="g-commit" class="primary" data-i18n="git.commit_btn">✓ Commit</button>
         </div>
         <div id="g-lists"></div>
-        <details id="g-logbox"><summary>История</summary><div id="g-log"></div></details>
+        <details id="g-logbox"><summary data-i18n="git.history">История</summary><div id="g-log"></div></details>
       </div>
     </div>
   </div>
@@ -217,17 +225,17 @@
       <div id="tabbar">
         <div id="tabs"></div>
         <div id="tools">
-          <button id="btn-diff" title="Сравнить с HEAD">Δ Diff</button>
-          <button id="btn-rb" title="Цветные отступы (indent-rainbow)">Отступы</button>
-          <button id="btn-wrap" title="Перенос строк">Перенос</button>
+          <button id="btn-diff" data-i18n-title="editor.diff_title" data-i18n="editor.diff_btn" title="Сравнить с HEAD">Δ Diff</button>
+          <button id="btn-rb" data-i18n-title="editor.rainbow_title" data-i18n="editor.rainbow_btn" title="Цветные отступы (indent-rainbow)">Отступы</button>
+          <button id="btn-wrap" data-i18n-title="editor.wrap_title" data-i18n="editor.wrap_btn" title="Перенос строк">Перенос</button>
         </div>
       </div>
       <div id="banner" style="display:none"><span id="bn-text"></span><span id="bn-btns"></span></div>
-      <div id="editor-box"><div id="editor"></div><div id="diff"></div><div id="empty">Выберите файл слева</div></div>
+      <div id="editor-box"><div id="editor"></div><div id="diff"></div><div id="empty" data-i18n="editor.empty">Выберите файл слева</div></div>
     </div>
     <div id="splitH" class="split"></div>
     <div id="termwrap">
-      <div id="term-bar"><span id="term-title">agy</span><div id="limits-wrap" class="limits-bar"></div><button id="agy-set" title="Настройки agy и флаги запуска проекта">⚙ Настройки агента</button><button id="restart">Перезапустить сессию</button></div>
+      <div id="term-bar"><span id="term-title">agy</span><div id="limits-wrap" class="limits-bar"></div><button id="btn-lang" title="Язык интерфейса / Interface Language">🌐 RU</button><button id="agy-set" data-i18n-title="term.settings_title" data-i18n="term.settings_btn" title="Настройки agy и флаги запуска проекта">⚙ Настройки агента</button><button id="restart" data-i18n="term.restart_btn">Перезапустить сессию</button></div>
       <div id="term-body"></div>
     </div>
   </div>
@@ -254,6 +262,210 @@ const S = {
 let editor, diffEditor, monaco;
 const rainbowRuns = [];
 
+/* ───────── локализация (i18n) ───────── */
+const I18N = { ru: null, en: null, custom: null };
+let currentLang = localStorage.getItem('agy_lang') || (navigator.language.startsWith('ru') ? 'ru' : 'en');
+if (localStorage.getItem('agy_custom_lang_json')) {
+  try { I18N.custom = JSON.parse(localStorage.getItem('agy_custom_lang_json')); } catch (e) {}
+}
+
+function t(path, params) {
+  const getVal = dict => {
+    if (!dict) return undefined;
+    return path.split('.').reduce((acc, k) => (acc != null ? acc[k] : undefined), dict);
+  };
+  let val;
+  if (currentLang === 'custom') val = getVal(I18N.custom);
+  if (val === undefined) val = getVal(I18N[currentLang]);
+  if (val === undefined && currentLang !== 'en') val = getVal(I18N.en);
+  if (val === undefined && currentLang !== 'ru') val = getVal(I18N.ru);
+  if (val === undefined) return path;
+
+  if (params && typeof val === 'string') {
+    for (const [k, v] of Object.entries(params)) {
+      val = val.replace(new RegExp('\\{' + k + '\\}', 'g'), v != null ? v : '');
+    }
+  }
+  return val;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  const customName = localStorage.getItem('agy_custom_lang_name') || 'Custom';
+  const btn = $('#btn-lang');
+  if (btn) btn.textContent = currentLang === 'custom' ? ('🌐 ' + customName) : (currentLang === 'en' ? '🌐 EN' : '🌐 RU');
+  document.documentElement.lang = currentLang === 'ru' ? 'ru' : 'en';
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('agy_lang', lang);
+  applyI18n();
+  renderTree();
+  renderTabs();
+  renderGit();
+  if (S.project) {
+    const p = S.projects.find(p => p.id === S.project);
+    if (p) {
+      $('#term-title').textContent = `agy — ${p.path}`;
+      document.title = `${p.name} · agy`;
+    }
+  }
+  if (S.limits) renderLimits(S.limits);
+}
+
+async function loadLocales() {
+  try {
+    const [rRu, rEn] = await Promise.all([
+      fetch('/lang/ru.json'),
+      fetch('/lang/en.json')
+    ]);
+    if (rRu.ok) I18N.ru = await rRu.json();
+    if (rEn.ok) I18N.en = await rEn.json();
+  } catch (e) {
+    console.warn('Failed to load language files:', e);
+  }
+  applyI18n();
+}
+const localesPromise = loadLocales();
+
+function downloadEnTemplate() {
+  if (I18N.en) {
+    const blob = new Blob([JSON.stringify(I18N.en, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'en.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    const a = document.createElement('a');
+    a.href = '/lang/en.json';
+    a.download = 'en.json';
+    a.click();
+  }
+}
+
+function uploadCustomLang(onSuccess) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (typeof parsed !== 'object' || !parsed) throw new Error('Root must be an object');
+        const name = file.name.replace(/\.json$/i, '');
+        localStorage.setItem('agy_custom_lang_json', JSON.stringify(parsed));
+        localStorage.setItem('agy_custom_lang_name', name);
+        I18N.custom = parsed;
+        setLanguage('custom');
+        toast(t('lang.custom_loaded'), 'ok');
+        if (onSuccess) onSuccess();
+      } catch (err) {
+        toast(t('lang.invalid_json') + ': ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function clearCustomLang() {
+  localStorage.removeItem('agy_custom_lang_json');
+  localStorage.removeItem('agy_custom_lang_name');
+  I18N.custom = null;
+  if (currentLang === 'custom') setLanguage('ru');
+  toast(t('lang.custom_cleared'), 'ok');
+}
+
+function showLangModal() {
+  const ov = h('div'); ov.id = 'modal';
+  const box = h('div', 'dlg');
+  box.style.minWidth = '340px';
+  box.append(h('h3', '', t('lang.title')));
+
+  const list = h('div', 'lang-list');
+  const customName = localStorage.getItem('agy_custom_lang_name') || 'Custom';
+
+  const langs = [
+    { id: 'ru', label: t('lang.ru') },
+    { id: 'en', label: t('lang.en') },
+  ];
+  if (I18N.custom) {
+    langs.push({ id: 'custom', label: t('lang.custom_name', { name: customName }) });
+  }
+
+  const renderLangs = () => {
+    list.textContent = '';
+    for (const l of langs) {
+      const opt = h('div', 'lang-opt' + (currentLang === l.id ? ' active' : ''));
+      opt.append(h('span', '', l.label));
+      opt.onclick = () => {
+        setLanguage(l.id);
+        renderLangs();
+        toast(t('lang.applied'), 'ok');
+      };
+      list.append(opt);
+    }
+  };
+  renderLangs();
+  box.append(list);
+
+  const tools = h('div', 'lang-tools');
+  const btnDown = h('button', '', t('lang.download_en'));
+  btnDown.type = 'button';
+  btnDown.onclick = () => downloadEnTemplate();
+
+  const btnUp = h('button', '', t('lang.upload_custom'));
+  btnUp.type = 'button';
+  btnUp.onclick = () => {
+    uploadCustomLang(() => {
+      ov.remove();
+      showLangModal();
+    });
+  };
+
+  tools.append(btnDown, btnUp);
+
+  if (I18N.custom) {
+    const btnReset = h('button', '', t('lang.reset_custom'));
+    btnReset.type = 'button';
+    btnReset.style.color = '#f48771';
+    btnReset.onclick = () => {
+      clearCustomLang();
+      ov.remove();
+      showLangModal();
+    };
+    tools.append(btnReset);
+  }
+  box.append(tools);
+
+  const row = h('div', 'btns');
+  const closeBtn = h('button', 'primary', t('common.close'));
+  closeBtn.type = 'button';
+  row.append(closeBtn);
+  box.append(row);
+  ov.append(box);
+
+  const close = () => ov.remove();
+  closeBtn.onclick = close;
+  ov.onmousedown = e => { if (e.target === ov) close(); };
+  box.onkeydown = e => { if (e.key === 'Escape') close(); };
+  document.body.append(ov);
+}
+
 function toast(msg, kind) {
   const t = $('#toast'); t.textContent = msg; t.className = kind || ''; t.style.display = 'block';
   clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', kind === 'ok' ? 5000 : 7000);
@@ -262,7 +474,7 @@ const errText = async r => (await r.text()).slice(0, 600) || r.statusText;
 const parentOf = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '';
 
 /* ───────── модальный диалог ───────── */
-function dialog(title, fields, okText = 'OK') {
+function dialog(title, fields, okText) {
   return new Promise(res => {
     const ov = h('div'); ov.id = 'modal';
     const box = h('form', 'dlg'); box.append(h('h3', '', title));
@@ -272,7 +484,7 @@ function dialog(title, fields, okText = 'OK') {
       i.value = f.value || ''; i.placeholder = f.placeholder || ''; i.autocomplete = 'off'; i.spellcheck = false;
       l.append(i); box.append(l); inputs[f.name] = i;
     }
-    const row = h('div', 'btns'), cancel = h('button', '', 'Отмена'), ok = h('button', 'primary', okText);
+    const row = h('div', 'btns'), cancel = h('button', '', t('common.cancel')), ok = h('button', 'primary', okText || t('common.ok'));
     cancel.type = 'button'; row.append(cancel, ok); box.append(row); ov.append(box);
     const close = v => { ov.remove(); res(v); };
     box.onsubmit = e => { e.preventDefault(); close(Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, i.value.trim()]))); };
@@ -330,11 +542,11 @@ async function refreshTree() {
 /* ───────── контекстное меню и файловые операции ───────── */
 function hideCtx() { $('#ctx').style.display = 'none'; }
 document.addEventListener('click', hideCtx);
-function showCtx(ev, t) {
+function showCtx(ev, tNode) {
   ev.preventDefault(); ev.stopPropagation();
-  const base = t ? (t.dir ? t.path : parentOf(t.path)) : '';
-  const items = [['Новый файл…', () => newEntry('file', base)], ['Новая папка…', () => newEntry('dir', base)]];
-  if (t) items.push(['Переименовать… (F2)', () => renameEntry(t)], ['Удалить (Del)', () => deleteEntry(t)]);
+  const base = tNode ? (tNode.dir ? tNode.path : parentOf(tNode.path)) : '';
+  const items = [[t('files.new_file'), () => newEntry('file', base)], [t('files.new_dir'), () => newEntry('dir', base)]];
+  if (tNode) items.push([t('files.rename'), () => renameEntry(tNode)], [t('files.delete'), () => deleteEntry(tNode)]);
   const m = $('#ctx'); m.textContent = '';
   for (const [label, fn] of items) { const d = h('div', '', label); d.onclick = () => { hideCtx(); fn(); }; m.append(d); }
   m.style.display = 'block';
@@ -347,7 +559,7 @@ const fsOp = async body => {
 };
 const selBase = () => S.sel.dir ? S.sel.path : parentOf(S.sel.path);
 async function newEntry(kind, base) {
-  const v = await dialog(kind === 'file' ? 'Новый файл' : 'Новая папка', [{ name: 'name', label: (base ? base + '/' : '') + '…', placeholder: kind === 'file' ? 'name.ext или dir/name.ext' : 'имя папки' }], 'Создать');
+  const v = await dialog(kind === 'file' ? t('files.new_file_title') : t('files.new_dir_title'), [{ name: 'name', label: (base ? base + '/' : '') + '…', placeholder: kind === 'file' ? t('files.new_file_ph') : t('files.new_dir_ph') }], t('common.create'));
   if (!v || !v.name) return;
   const path = (base ? base + '/' : '') + v.name.replace(/^\/+/, '');
   if (!await fsOp({ op: kind, path })) return;
@@ -357,28 +569,28 @@ async function newEntry(kind, base) {
   if (kind === 'file') openFile(path);
 }
 const affected = p => [...S.files.keys()].filter(k => k === p || k.startsWith(p + '/'));
-async function renameEntry(t) {
-  const v = await dialog('Переименовать / переместить', [{ name: 'to', label: t.path, value: t.path }], 'Переименовать');
-  if (!v || !v.to || v.to === t.path) return;
+async function renameEntry(tNode) {
+  const v = await dialog(t('files.rename_title'), [{ name: 'to', label: tNode.path, value: tNode.path }], t('files.rename_btn'));
+  if (!v || !v.to || v.to === tNode.path) return;
   const to = v.to.replace(/^\/+/, '');
-  const aff = affected(t.path);
-  if (aff.some(k => S.files.get(k).dirty)) return toast('Сначала сохраните изменённые файлы в этой папке/файле');
-  if (!await fsOp({ op: 'rename', path: t.path, to })) return;
-  const wasActive = S.active, remap = k => to + k.slice(t.path.length);
+  const aff = affected(tNode.path);
+  if (aff.some(k => S.files.get(k).dirty)) return toast(t('files.save_dirty_first'));
+  if (!await fsOp({ op: 'rename', path: tNode.path, to })) return;
+  const wasActive = S.active, remap = k => to + k.slice(tNode.path.length);
   aff.forEach(k => closeFile(k, true));
-  for (const k of [...S.expanded]) if (k === t.path || k.startsWith(t.path + '/')) { S.expanded.delete(k); S.expanded.add(remap(k)); }
-  for (const k of Object.keys(S.children)) if (k === t.path || k.startsWith(t.path + '/')) delete S.children[k];
-  S.sel = { path: to, dir: t.dir };
+  for (const k of [...S.expanded]) if (k === tNode.path || k.startsWith(tNode.path + '/')) { S.expanded.delete(k); S.expanded.add(remap(k)); }
+  for (const k of Object.keys(S.children)) if (k === tNode.path || k.startsWith(tNode.path + '/')) delete S.children[k];
+  S.sel = { path: to, dir: tNode.dir };
   await refreshTree(); gitStatus(true);
   for (const k of aff) await openFile(remap(k));
   if (wasActive && aff.includes(wasActive)) activate(remap(wasActive));
 }
-async function deleteEntry(t) {
-  if (!confirm(`Удалить «${t.path}»${t.dir ? ' со всем содержимым' : ''}? Это необратимо.`)) return;
-  if (!await fsOp({ op: 'delete', path: t.path })) return;
-  affected(t.path).forEach(k => closeFile(k, true));
-  for (const k of [...S.expanded]) if (k === t.path || k.startsWith(t.path + '/')) S.expanded.delete(k);
-  for (const k of Object.keys(S.children)) if (k === t.path || k.startsWith(t.path + '/')) delete S.children[k];
+async function deleteEntry(tNode) {
+  if (!confirm(t('files.delete_confirm', { path: tNode.path, all: tNode.dir ? t('files.with_contents') : '' }))) return;
+  if (!await fsOp({ op: 'delete', path: tNode.path })) return;
+  affected(tNode.path).forEach(k => closeFile(k, true));
+  for (const k of [...S.expanded]) if (k === tNode.path || k.startsWith(tNode.path + '/')) S.expanded.delete(k);
+  for (const k of Object.keys(S.children)) if (k === tNode.path || k.startsWith(tNode.path + '/')) delete S.children[k];
   S.sel = { path: '', dir: true };
   await refreshTree(); gitStatus(true);
 }
@@ -440,7 +652,7 @@ async function openFile(path, line, focus = true) {
 }
 function closeFile(path, force) {
   const f = S.files.get(path); if (!f) return;
-  if (!force && f.dirty && !confirm(`${path} не сохранён. Закрыть?`)) return;
+  if (!force && f.dirty && !confirm(t('files.unsaved_close', { path }))) return;
   const keys = [...S.files.keys()], i = keys.indexOf(path);
   if (S.diffOn && S.active === path) { diffEditor.setModel(null); }
   f.model.dispose(); S.files.delete(path);
@@ -461,8 +673,8 @@ async function save(f, force = false) {
   const ver = f.model.getAlternativeVersionId();
   const res = await fetch('/api/file', { method: 'PUT', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ project: S.project, path: f.path, content: f.model.getValue(), mtime: f.mtime, force }) });
-  if (res.status === 409) { if (confirm('Файл изменён на диске (возможно, агентом). Перезаписать?')) return save(f, true); return; }
-  if (!res.ok) return toast(`Не сохранено: ${await errText(res)}`);
+  if (res.status === 409) { if (confirm(t('files.conflict_overwrite'))) return save(f, true); return; }
+  if (!res.ok) return toast(t('files.save_error') + await errText(res));
   f.mtime = (await res.json()).mtime; f.savedVer = ver; f.conflict = f.gone = false;
   f.dirty = f.model.getAlternativeVersionId() !== ver; renderTabs(); gitStatus();
 }
@@ -546,13 +758,13 @@ function renderBanner() {
   const f = S.files.get(S.active), bar = $('#banner');
   if (!f || (!f.conflict && !f.gone)) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
-  $('#bn-text').textContent = f.gone ? 'Файл удалён или перемещён на диске.' : 'Файл изменён на диске (агентом?), а в редакторе есть несохранённые правки.';
+  $('#bn-text').textContent = f.gone ? t('editor.banner_deleted') : t('editor.banner_conflict');
   const box = $('#bn-btns'); box.textContent = '';
-  const btn = (t, fn) => { const b = h('button', '', t); b.onclick = fn; box.append(b); };
-  if (f.gone) { btn('Закрыть вкладку', () => closeFile(f.path, true)); btn('Сохранить заново', () => save(f, true)); }
+  const btn = (tText, fn) => { const b = h('button', '', tText); b.onclick = fn; box.append(b); };
+  if (f.gone) { btn(t('editor.btn_close_tab'), () => closeFile(f.path, true)); btn(t('editor.btn_save_again'), () => save(f, true)); }
   else {
-    btn('Загрузить с диска', () => reloadFile(f));
-    btn('Оставить мои правки', () => { f.mtime = f.diskMtime; f.conflict = false; renderTabs(); });
+    btn(t('editor.btn_reload_disk'), () => reloadFile(f));
+    btn(t('editor.btn_keep_mine'), () => { f.mtime = f.diskMtime; f.conflict = false; renderTabs(); });
   }
 }
 setInterval(() => { if (!document.hidden && S.project) { refreshTree(); gitStatus(); } }, 4000);
@@ -562,7 +774,7 @@ setInterval(() => { if (!document.hidden && S.project) { refreshTree(); gitStatu
 async function refreshDiff() {
   const f = S.files.get(S.active);
   if (!S.diffOn || !f) { updateView(); return; }
-  if (!S.git.repo) { S.diffOn = false; updateView(); return toast('Это не git-репозиторий'); }
+  if (!S.git.repo) { S.diffOn = false; updateView(); return toast(t('editor.not_git')); }
   const r = await fetch(api('/api/git/show', { project: S.project, path: f.path }));
   if (!r.ok || !S.diffOn || S.files.get(S.active) !== f) return;
   const j = await r.json();
@@ -579,7 +791,7 @@ async function showDiff(path) {
 }
 $('#btn-diff').onclick = async () => {
   if (S.diffOn) { S.diffOn = false; updateView(); const f = S.files.get(S.active); if (f) editor.setModel(f.model); return; }
-  if (!S.files.has(S.active)) return toast('Откройте файл');
+  if (!S.files.has(S.active)) return toast(t('editor.open_file_first'));
   S.diffOn = true; refreshDiff();
 };
 
@@ -653,17 +865,17 @@ async function loadBranches() {
   const { local, remote } = await r.json();
   const sel = $('#branch'); sel.textContent = '';
   const cur = (S.git.branch || {}).name, seen = new Set(local);
-  const add = (v, t) => { const o = h('option', '', t); o.value = v; sel.append(o); };
+  const add = (v, tText) => { const o = h('option', '', tText); o.value = v; sel.append(o); };
   if (cur && !seen.has(cur)) add(cur, cur);
   for (const b of local) add(b, b);
-  for (const rb of remote) { const s = rb.slice(rb.indexOf('/') + 1); if (!seen.has(s)) { seen.add(s); add(s, rb + ' (удалённая)'); } }
+  for (const rb of remote) { const s = rb.slice(rb.indexOf('/') + 1); if (!seen.has(s)) { seen.add(s); add(s, rb + t('git.remote_branch_tag')); } }
   sel.value = cur;
 }
 async function loadLog() {
   const r = await fetch(api('/api/git/log', { project: S.project })); if (!r.ok) return;
   const box = $('#g-log'); box.textContent = '';
   const list = await r.json();
-  if (!list.length) box.append(h('div', 'note', 'Коммитов нет'));
+  if (!list.length) box.append(h('div', 'note', t('git.no_commits')));
   for (const c of list) {
     const d = h('div', 'logl'); d.title = `${c.subject}\n${c.author}, ${c.when}`;
     d.append(h('b', '', c.hash), document.createTextNode(c.subject + ' '), h('i', '', '· ' + c.author + ', ' + c.when));
@@ -679,13 +891,13 @@ function gitRow(f, staged) {
   row.append(n);
   const acts = h('span', 'acts');
   const btn = (txt, title, fn) => { const b = h('button', 'ib', txt); b.title = title; b.onclick = ev => { ev.stopPropagation(); fn(); }; acts.append(b); };
-  if (staged) btn('−', 'Убрать из индекса', () => gitOp('unstage', { paths: [f.path] }, true));
+  if (staged) btn('−', t('git.unstage_one'), () => gitOp('unstage', { paths: [f.path] }, true));
   else {
-    btn('↩', 'Отменить изменения', () => { if (confirm(`Отменить изменения в «${f.path}»? Это необратимо.`)) discard([f.path]); });
-    btn('+', 'В индекс', () => gitOp('stage', { paths: [f.path] }, true));
+    btn('↩', t('git.discard_one'), () => { if (confirm(t('git.discard_confirm', { path: f.path }))) discard([f.path]); });
+    btn('+', t('git.stage_one'), () => gitOp('stage', { paths: [f.path] }, true));
   }
   row.append(acts);
-  row.onclick = () => { if (code === 'D') toast('Файл удалён'); else showDiff(f.path); };
+  row.onclick = () => { if (code === 'D') toast(t('git.file_deleted')); else showDiff(f.path); };
   return row;
 }
 async function discard(paths) {
@@ -701,7 +913,7 @@ function renderGit() {
   const b = g.branch || {}, hasRem = g.remotes.length > 0;
   if (S.lastBranch !== b.name) { S.lastBranch = b.name; loadBranches(); }
   const arrows = [b.behind ? '↓' + b.behind : '', b.ahead ? '↑' + b.ahead : ''].filter(Boolean).join(' ');
-  $('#g-sync').textContent = !b.upstream ? '☁ Опубликовать ветку' : '⇅ Синхронизировать ' + arrows;
+  $('#g-sync').textContent = !b.upstream ? t('git.publish_branch') : (arrows ? t('git.sync_arrows', { arrows }) : t('git.sync'));
   for (const id of ['#g-sync', '#g-pull', '#g-push', '#g-fetch']) $(id).disabled = !hasRem;
   $('#g-remote').style.display = hasRem ? 'none' : '';
   const files = g.files || [], conflict = f => gitCode(f) === 'C';
@@ -714,10 +926,10 @@ function renderGit() {
     const bt = h('button', 'ib', allOp === 'unstage' ? '−' : '+'); bt.title = allTitle; bt.onclick = () => gitOp(allOp, {}, true); head.append(bt);
     box.append(head); for (const f of list) box.append(gitRow(f, isStaged));
   };
-  section('Индекс', staged, true, 'unstage', 'Убрать всё из индекса');
-  section('Изменения', changes, false, 'stage', 'Добавить всё в индекс');
-  if (!files.length) box.append(h('div', 'note', 'Изменений нет'));
-  if (g.truncated) box.append(h('div', 'note', 'Показаны первые 3000 файлов'));
+  section(t('git.staged'), staged, true, 'unstage', t('git.unstage_all'));
+  section(t('git.changes'), changes, false, 'stage', t('git.stage_all'));
+  if (!files.length) box.append(h('div', 'note', t('git.no_changes')));
+  if (g.truncated) box.append(h('div', 'note', t('git.truncated')));
 }
 async function gitOp(op, body = {}, quiet) {
   const panel = $('#p-git'); panel.classList.add('busy');
@@ -734,11 +946,11 @@ async function gitOp(op, body = {}, quiet) {
 }
 async function commit() {
   const msg = $('#g-msg').value.trim();
-  if (!msg) return toast('Введите сообщение коммита');
+  if (!msg) return toast(t('git.enter_commit_msg'));
   const files = S.git.files || [];
   const staged = files.some(f => f.x !== ' ' && f.x !== '?' && gitCode(f) !== 'C');
-  if (!files.length) return toast('Нет изменений');
-  if (!staged && !confirm('Ничего не добавлено в индекс. Закоммитить все изменения?')) return;
+  if (!files.length) return toast(t('git.no_changes'));
+  if (!staged && !confirm(t('git.nothing_staged_commit_all'))) return;
   if (await gitOp('commit', { message: msg, all: !staged })) $('#g-msg').value = '';
 }
 $('#g-commit').onclick = commit;
@@ -750,20 +962,20 @@ $('#g-fetch').onclick = () => gitOp('fetch');
 $('#g-init').onclick = () => gitOp('init');
 $('#branch').onchange = e => gitOp('checkout', { branch: e.target.value });
 $('#g-newbranch').onclick = async () => {
-  const v = await dialog('Новая ветка', [{ name: 'name', label: 'Имя ветки (от текущей)' }], 'Создать');
+  const v = await dialog(t('git.new_branch_title'), [{ name: 'name', label: t('git.new_branch_label') }], t('common.create'));
   if (v && v.name) gitOp('checkout', { branch: v.name, create: true });
 };
 $('#g-remote').onclick = async () => {
-  const v = await dialog('Адрес remote (origin)', [{ name: 'url', label: 'URL репозитория', placeholder: 'https://github.com/user/repo.git' }], 'Сохранить');
+  const v = await dialog(t('git.remote_title'), [{ name: 'url', label: 'URL', placeholder: t('git.remote_ph') }], t('common.save'));
   if (v && v.url) gitOp('remote_add', { url: v.url });
 };
 async function credDialog() {
-  const v = await dialog('Токен для https-доступа', [
-    { name: 'host', label: 'Хост', value: 'github.com' }, { name: 'username', label: 'Логин' },
-    { name: 'token', label: 'Токен / пароль', type: 'password' }], 'Сохранить');
+  const v = await dialog(t('git.token_title'), [
+    { name: 'host', label: t('git.cred_host'), value: 'github.com' }, { name: 'username', label: t('git.cred_user') },
+    { name: 'token', label: t('git.cred_token'), type: 'password' }], t('common.save'));
   if (!v) return;
   const r = await post('/api/git/credentials', v);
-  if (r.ok) toast('Токен сохранён', 'ok'); else toast(await errText(r));
+  if (r.ok) toast(t('git.token_saved'), 'ok'); else toast(await errText(r));
 }
 $('#g-cred').onclick = $('#g-cred0').onclick = credDialog;
 
@@ -775,7 +987,7 @@ async function doSearch() {
   if (searchCtl) searchCtl.abort();
   if (q.length < 2) { box.textContent = ''; return; }
   searchCtl = new AbortController();
-  box.textContent = ''; box.append(h('div', 'note', 'Поиск…'));
+  box.textContent = ''; box.append(h('div', 'note', t('search.searching')));
   let j;
   try {
     const r = await fetch(api('/api/search', { project: S.project, q, regex: $('#o-regex').checked ? 1 : 0, case: $('#o-case').checked ? 1 : 0 }), { signal: searchCtl.signal });
@@ -783,11 +995,11 @@ async function doSearch() {
     j = await r.json();
   } catch (e) { return; }
   box.textContent = '';
-  const note = t => box.append(h('div', 'note', t));
-  if (j.error) return note('Ошибка регулярки: ' + j.error);
-  if (!j.files.length && !j.matches.length) return note('Ничего не найдено');
+  const note = txt => box.append(h('div', 'note', txt));
+  if (j.error) return note(t('search.regex_error', { err: j.error }));
+  if (!j.files.length && !j.matches.length) return note(t('search.not_found'));
   if (j.files.length) {
-    box.append(h('div', 'res-head', `Файлы (${j.files.length})`));
+    box.append(h('div', 'res-head', t('search.files_count', { count: j.files.length })));
     for (const p of j.files) { const d = h('div', 'res-file', p); d.title = p; d.onclick = () => openFile(p); box.append(d); }
   }
   const groups = new Map();
@@ -799,14 +1011,14 @@ async function doSearch() {
       d.onclick = () => openFile(p, m.line); box.append(d);
     }
   }
-  if (j.truncated) note('Показаны первые результаты — уточните запрос');
+  if (j.truncated) note(t('search.truncated'));
 }
 $('#q').oninput = runSearch;
 $('#q').onkeydown = e => { if (e.key === 'Enter') { clearTimeout(searchTimer); doSearch(); } };
 $('#o-case').onchange = $('#o-regex').onchange = doSearch;
 function showTab(name) {
   document.querySelectorAll('#side-tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
-  for (const t of ['files', 'search', 'git']) $('#p-' + t).classList.toggle('on', t === name);
+  for (const tName of ['files', 'search', 'git']) $('#p-' + tName).classList.toggle('on', tName === name);
   if (name === 'search') { $('#q').focus(); $('#q').select(); }
   if (name === 'git') { gitStatus(true); loadBranches(); }
 }
@@ -828,7 +1040,7 @@ function connect() {
   sock.binaryType = 'arraybuffer';
   sock.onmessage = e => {
     if (typeof e.data === 'string') {
-      if (JSON.parse(e.data).type === 'exit') { ended = true; term.write('\r\n\x1b[33m[процесс завершён — нажмите любую клавишу для перезапуска]\x1b[0m\r\n'); }
+      if (JSON.parse(e.data).type === 'exit') { ended = true; term.write('\r\n\x1b[33m' + t('term.process_ended') + '\x1b[0m\r\n'); }
     } else { term.write(new Uint8Array(e.data)); kickDiskCheck(); }
   };
   sock.onclose = () => { if (sock === ws && !ended) setTimeout(() => sock === ws && connect(), 1500); };
@@ -840,7 +1052,7 @@ term.onData(d => {
 term.onResize(({ cols, rows }) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'resize', cols, rows })); });
 let fitRaf; new ResizeObserver(() => { cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(() => { try { fit.fit(); } catch (e) {} }); }).observe($('#term-body'));
 $('#restart').onclick = async () => {
-  if (!confirm('Убить текущую сессию и запустить заново?')) return;
+  if (!confirm(t('term.restart_confirm'))) return;
   await post(api('/api/term/kill', { project: S.project }), {});
   ended = false; connect();
 };
@@ -852,7 +1064,7 @@ async function loadProjects() {
   for (const p of S.projects) { const o = h('option', '', p.name); o.value = p.id; sel.append(o); }
 }
 async function setProject(id) {
-  if ([...S.files.values()].some(f => f.dirty) && !confirm('Есть несохранённые файлы. Закрыть их?')) { $('#proj').value = S.project; return; }
+  if ([...S.files.values()].some(f => f.dirty) && !confirm(t('projects.unsaved_close'))) { $('#proj').value = S.project; return; }
   closeAll();
   S.project = id; localStorage.setItem('project', id);
   S.expanded = new Set(); S.children = {}; S.sel = { path: '', dir: true };
@@ -864,15 +1076,15 @@ async function setProject(id) {
 }
 $('#proj').onchange = e => setProject(e.target.value);
 $('#newproj').onclick = async () => {
-  const v = await dialog('Новый проект', [
-    { name: 'url', label: 'Git URL для клонирования (пусто = пустая папка)', placeholder: 'https://github.com/user/repo.git' },
-    { name: 'name', label: 'Имя папки (пусто = из URL)' }], 'Создать');
+  const v = await dialog(t('projects.new'), [
+    { name: 'url', label: t('projects.url_label'), placeholder: t('projects.url_ph') },
+    { name: 'name', label: t('projects.name_label') }], t('common.create'));
   if (!v) return;
-  toast(v.url ? 'Клонирую…' : 'Создаю…', 'ok');
+  toast(v.url ? t('projects.cloning') : t('projects.creating'), 'ok');
   const r = await post('/api/project/new', v);
   if (!r.ok) return toast(await errText(r));
   const { id } = await r.json();
-  toast('Готово', 'ok');
+  toast(t('projects.done'), 'ok');
   await loadProjects(); await setProject(id);
 };
 
@@ -887,7 +1099,7 @@ async function agentSettings() {
   if (!r.ok) return toast(await errText(r));
   const d = await r.json(), P = d.project;
   const ov = h('div'); ov.id = 'modal';
-  const box = h('form', 'dlg wide'); box.append(h('h3', '', 'Настройки агента'));
+  const box = h('form', 'dlg wide'); box.append(h('h3', '', t('settings.title')));
   const ctl = {};  // имя -> {get()}
   const field = (cls, label, input, help) => { const l = h('label', 'fld ' + cls); if (cls.includes('chk')) l.append(input, h('span', '', label)); else l.append(h('span', '', label), input); if (help) l.append(h('small', '', help)); return l; };
   const mk = {
@@ -896,62 +1108,65 @@ async function agentSettings() {
     bool: v => { const i = h('input'); i.type = 'checkbox'; i.checked = !!v; return [i, () => i.checked]; },
     select: (v, opts, empty) => { const i = h('select'); for (const o of (empty != null ? [''] : []).concat(opts)) { const op = h('option', '', o === '' ? empty : o); op.value = o; i.append(op); } i.value = v ?? ''; return [i, () => i.value]; },
     lines: v => { const i = h('textarea'); i.value = (v || []).join('\n'); i.spellcheck = false; return [i, () => i.value.split('\n').map(x => x.trim()).filter(Boolean)]; },
-    json: v => { const i = h('textarea'); i.value = v ? JSON.stringify(v, null, 2) : ''; i.spellcheck = false; i.placeholder = '(не задано)'; return [i, () => { const t = i.value.trim(); return t ? JSON.parse(t) : null; }]; },
+    json: v => { const i = h('textarea'); i.value = v ? JSON.stringify(v, null, 2) : ''; i.spellcheck = false; i.placeholder = t('settings.not_set'); return [i, () => { const tVal = i.value.trim(); return tVal ? JSON.parse(tVal) : null; }]; },
   };
 
   // 1. флаги проекта
   const pname = (S.projects.find(p => p.id === S.project) || {}).name || S.project;
-  box.append(h('h4', '', `Проект «${pname}»: флаги запуска`));
-  if (!P.hasPlaceholder) box.append(h('p', 'hint', 'В cmd пресета этого проекта нет {AGY_FLAGS}, поэтому флаги не применятся. Замените запуск agy в projects.json на {AGY_FLAGS}.'));
+  box.append(h('h4', '', t('settings.project_flags', { name: pname })));
+  if (!P.hasPlaceholder) box.append(h('p', 'hint', t('settings.no_placeholder')));
   const fl = P.flags || {}, fg = h('div', 'fgrid'), fctl = {};
   const addF = (key, cls, label, [el, get], help) => { fctl[key] = get; fg.append(field(cls, label, el, help)); };
-  addF('model', '', '--model', mk.text(fl.model, 'пусто = из общих настроек'));
-  addF('mode', '', '--mode', mk.select(fl.mode, P.modes.filter(Boolean), 'по умолчанию'));
-  addF('effort', '', '--effort', mk.text(fl.effort, 'например high'));
-  addF('extra', '', 'Дополнительные аргументы', mk.text(fl.extra, '--flag значение'));
-  addF('sandbox', 'chk', '--sandbox (песочница терминала)', mk.bool(fl.sandbox));
-  addF('skip', 'chk warn', '--dangerously-skip-permissions (без подтверждений!)', mk.bool(fl.skip));
-  addF('addDirs', 'full', '--add-dir (дополнительные папки, по одной в строке)', mk.lines(fl.addDirs));
+  addF('model', '', '--model', mk.text(fl.model, t('settings.model_ph')));
+  addF('mode', '', '--mode', mk.select(fl.mode, P.modes.filter(Boolean), t('settings.default_val')));
+  addF('effort', '', '--effort', mk.text(fl.effort, t('settings.effort_ph')));
+  addF('extra', '', t('settings.extra_args'), mk.text(fl.extra, t('settings.extra_args_ph')));
+  addF('sandbox', 'chk', t('settings.sandbox_label'), mk.bool(fl.sandbox));
+  addF('skip', 'chk warn', t('settings.skip_label'), mk.bool(fl.skip));
+  addF('addDirs', 'full', t('settings.add_dirs_label'), mk.lines(fl.addDirs));
   box.append(fg);
 
   // 2. общие настройки
-  box.append(h('h4', '', 'Общие настройки (для всех проектов)'));
-  box.append(h('p', 'hint', `Файл: <code>${d.path}</code>. agy хранит только отличия от значений по умолчанию, поэтому значения по умолчанию из файла убираются.`.replace(/<\/?code>/g, '')));
-  if (d.error) box.append(h('p', 'hint', '⚠ Файл сейчас не читается: ' + d.error));
+  box.append(h('h4', '', t('settings.global_title')));
+  box.append(h('p', 'hint', t('settings.file_hint', { path: d.path })));
+  if (d.error) box.append(h('p', 'hint', t('settings.file_read_error', { err: d.error })));
   const groups = new Map();
   for (const f of d.schema) { if (!groups.has(f.group)) groups.set(f.group, []); groups.get(f.group).push(f); }
   for (const [g, list] of groups) {
-    const gg = h('div', 'fgrid'); box.append(h('h4', '', g));
+    const gg = h('div', 'fgrid'); box.append(h('h4', '', t('settings.group.' + g) || g));
     for (const f of list) {
       const v = f.key in d.values ? d.values[f.key] : f.default;
+      const label = t('settings.schema.' + f.key + '.label') || f.label;
+      const help = t('settings.schema.' + f.key + '.help') || f.help;
+      const ph = f.default ? t('settings.default_hint', { val: f.default }) : '';
       let pair;
       if (f.type === 'select') pair = mk.select(v, f.options);
-      else if (f.type === 'text') pair = mk.text(d.values[f.key], f.default ? `по умолчанию: ${f.default}` : '');
+      else if (f.type === 'text') pair = mk.text(d.values[f.key], ph);
       else pair = mk[f.type](v);
       ctl[f.key] = pair[1];
       const cls = f.type === 'bool' ? 'chk' : (f.type === 'json' || f.type === 'lines') ? 'full' : '';
-      gg.append(field(cls, f.label, pair[0], f.type === 'bool' ? '' : f.help));
+      gg.append(field(cls, label, pair[0], f.type === 'bool' ? '' : help));
     }
     box.append(gg);
   }
-  const row = h('div', 'btns'), cancel = h('button', '', 'Отмена'), save1 = h('button', '', 'Сохранить'), save2 = h('button', 'primary', 'Сохранить и перезапустить агента (-c)');
+  const row = h('div', 'btns'), cancel = h('button', '', t('common.cancel')), save1 = h('button', '', t('settings.save')), save2 = h('button', 'primary', t('settings.save_restart'));
   cancel.type = save1.type = save2.type = 'button'; row.append(cancel, save1, save2); box.append(row); ov.append(box);
   const close = () => ov.remove();
   cancel.onclick = close; ov.onmousedown = e => { if (e.target === ov) close(); };
   box.onkeydown = e => { if (e.key === 'Escape') close(); };
   async function doSave(restart) {
     let values = {}, flags = {};
-    try { for (const k in ctl) values[k] = ctl[k](); } catch (e) { return toast('Некорректный JSON в расширенных настройках: ' + e.message); }
+    try { for (const k in ctl) values[k] = ctl[k](); } catch (e) { return toast(t('settings.json_err', { err: e.message })); }
     for (const k in fctl) flags[k] = fctl[k]();
     let r = await fetch('/api/agy/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ values }) });
-    if (r.status === 409 && confirm((await r.text()) + '\n\nПерезаписать файл?'))
+    if (r.status === 409 && confirm(t('settings.conflict_overwrite', { err: await r.text() })))
       r = await fetch('/api/agy/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ values, force: true }) });
     if (!r.ok) return toast(await errText(r));
     r = await fetch('/api/agy/flags', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ project: S.project, flags }) });
     if (!r.ok) return toast(await errText(r));
     close();
-    if (restart) { await restartAgent(true); toast('Сохранено, агент перезапущен с продолжением диалога', 'ok'); }
-    else toast('Сохранено. Настройки применятся при следующем запуске агента', 'ok');
+    if (restart) { await restartAgent(true); toast(t('settings.saved_restarted'), 'ok'); }
+    else toast(t('settings.saved'), 'ok');
   }
   save1.onclick = () => doSave(false); save2.onclick = () => doSave(true);
   document.body.append(ov);
@@ -994,8 +1209,8 @@ function renderLimits(data) {
 
   if (data.loading) {
     const chip = h('div', 'limit-chip loading');
-    chip.append(h('span', 'grp', 'Лимиты: '), document.createTextNode('опрос…'));
-    chip.title = 'Опрос agy /usage в фоне…';
+    chip.append(h('span', 'grp', t('limits.loading')));
+    chip.title = t('limits.loading_tip');
     chip.onclick = () => showLimitsModal();
     wrap.append(chip);
     return;
@@ -1005,53 +1220,57 @@ function renderLimits(data) {
   const groups = Object.keys(items);
   if (!data.ok || !groups.length) {
     const chip = h('div', 'limit-chip err');
-    chip.append(h('span', '', '⚠ Лимиты'));
-    chip.title = (data.error || 'Лимиты не найдены в выводе /usage') + '\nНажмите для подробностей';
+    chip.append(h('span', '', t('limits.err_chip')));
+    chip.title = (data.error || t('limits.err_default')) + '\n' + t('limits.click_details');
     chip.onclick = () => showLimitsModal();
     wrap.append(chip);
     return;
   }
 
-  const GRP_NAMES = { claude: 'Claude', gemini: 'Gemini', all: 'Лимиты' };
-  const GRP_NAMES_LONG = { claude: 'Claude / GPT', gemini: 'Gemini', all: 'Все модели' };
-  const WIN_NAMES = { h5: '5ч', week: 'нед' };
-  const WIN_NAMES_LONG = { h5: '5 часов', week: '1 неделя' };
-
   for (const grp of groups) {
     const wins = items[grp];
     if (!wins || !Object.keys(wins).length) continue;
     const chip = h('div', 'limit-chip');
-    chip.append(h('span', 'grp', GRP_NAMES[grp] || grp));
+    const grpName = t('limits.groups.' + grp) || grp;
+    chip.append(h('span', 'grp', grpName));
 
-    let tip = `${GRP_NAMES_LONG[grp] || grp}:\n`;
+    let tip = `${grpName}:\n`;
     for (const [w, it] of Object.entries(wins)) {
       const exactPct = fmtPct(it.remaining);
       const usedPct = fmtUsedPct(it.remaining);
       const pctNum = Math.round(it.remaining * 100);
       const statusCls = pctNum >= 50 ? 'ok' : pctNum >= 20 ? 'warn' : 'crit';
+      const winName = t('limits.windows.' + w) || w;
+      const winShort = t('limits.windows_short.' + w) || w;
 
       const itemWrap = h('span', 'limit-item');
 
       const valSpan = h('span', 'val ' + statusCls, exactPct);
-      valSpan.append(h('span', 'win', WIN_NAMES[w] || w));
+      valSpan.append(h('span', 'win', winShort));
 
       const pbar = h('span', 'limit-mini-bar');
       const pfill = h('span', 'limit-mini-fill ' + statusCls);
       pfill.style.width = Math.max(0, Math.min(100, pctNum)) + '%';
       pbar.append(pfill);
 
-      const tipText = `${GRP_NAMES[grp] || grp} (${WIN_NAMES_LONG[w] || w}): осталось ${exactPct} (расход: ${usedPct})` + (it.reset ? ` · сброс: ${it.reset}` : '') + (it.assumed ? ' [прибл.]' : '');
+      const tipText = `${grpName} (${winName}): ` + t('limits.rem', { pct: exactPct }) +
+        ` (${t('limits.used', { pct: usedPct })})` + (it.reset ? ` · ${t('limits.reset', { val: it.reset })}` : '') +
+        (it.assumed ? t('limits.assumed') : '');
       const tipBox = h('span', 'limit-tip', tipText);
 
       itemWrap.append(valSpan, pbar, tipBox);
       itemWrap.title = tipText;
       chip.append(itemWrap);
 
-      tip += `• ${WIN_NAMES_LONG[w] || w}: осталось ${exactPct} (расход: ${usedPct})` + (it.reset ? ` (сброс: ${it.reset})` : '') + (it.assumed ? ' [прибл.]' : '') + '\n';
+      tip += `• ${winName}: ` + t('limits.rem', { pct: exactPct }) + ` (${t('limits.used', { pct: usedPct })})` +
+        (it.reset ? ` (${t('limits.reset', { val: it.reset })})` : '') + (it.assumed ? t('limits.assumed') : '') + '\n';
     }
 
-    if (data.age != null) tip += `\nОбновлено: ${data.age < 60 ? data.age + ' с' : Math.round(data.age / 60) + ' мин'} назад`;
-    tip += '\nНажмите для подробностей и обновления';
+    if (data.age != null) {
+      const ageStr = data.age < 60 ? t('limits.sec_ago', { n: data.age }) : t('limits.min_ago', { n: Math.round(data.age / 60) });
+      tip += `\n${ageStr}`;
+    }
+    tip += '\n' + t('limits.click_details_refresh');
     chip.title = tip.trim();
     chip.onclick = () => showLimitsModal();
     wrap.append(chip);
@@ -1059,10 +1278,10 @@ function renderLimits(data) {
 }
 
 function showLimitsModal() {
-  const d = S.limits || { items: {}, error: 'Данные ещё не загружены' };
+  const d = S.limits || { items: {}, error: t('limits.not_loaded') };
   const ov = h('div'); ov.id = 'modal';
   const box = h('div', 'dlg wide');
-  box.append(h('h3', '', 'Лимиты запросов agy'));
+  box.append(h('h3', '', t('limits.title')));
 
   const contentBox = h('div');
   box.append(contentBox);
@@ -1076,27 +1295,26 @@ function showLimitsModal() {
       const tbl = h('table', 'limits-table');
       const thead = h('thead');
       const trh = h('tr');
-      for (const thText of ['Модель / Группа', 'Окно', 'Осталось', 'Шкала', 'Сброс']) {
+      for (const thText of [t('limits.col_model'), t('limits.col_window'), t('limits.col_left'), t('limits.col_bar'), t('limits.col_reset')]) {
         trh.append(h('th', '', thText));
       }
       thead.append(trh);
       tbl.append(thead);
 
       const tbody = h('tbody');
-      const GRP_NAMES_LONG = { claude: 'Claude / GPT', gemini: 'Gemini', all: 'Все модели' };
-      const WIN_NAMES_LONG = { h5: '5 часов', week: '1 неделя' };
-
       for (const [grp, wins] of Object.entries(data.items || {})) {
         for (const [w, it] of Object.entries(wins)) {
           const tr = h('tr');
-          tr.append(h('td', '', (GRP_NAMES_LONG[grp] || grp) + (it.assumed ? ' (прибл.)' : '')));
-          tr.append(h('td', '', WIN_NAMES_LONG[w] || w));
+          const grpName = (t('limits.groups.' + grp) || grp) + (it.assumed ? t('limits.assumed') : '');
+          const winName = t('limits.windows.' + w) || w;
+          tr.append(h('td', '', grpName));
+          tr.append(h('td', '', winName));
           const exactPct = fmtPct(it.remaining);
           const usedPct = fmtUsedPct(it.remaining);
           const pctNum = Math.round(it.remaining * 100);
           const statusCls = pctNum >= 50 ? 'ok' : pctNum >= 20 ? 'warn' : 'crit';
           const tdRem = h('td', 'val ' + statusCls, exactPct);
-          const sm = h('small', '', ` (расход: ${usedPct})`);
+          const sm = h('small', '', t('limits.used_paren', { pct: usedPct }));
           sm.style.color = 'var(--dim)';
           sm.style.marginLeft = '4px';
           tdRem.append(sm);
@@ -1107,7 +1325,7 @@ function showLimitsModal() {
           const pfill = h('div', 'limits-pfill ' + statusCls);
           pfill.style.width = Math.max(0, Math.min(100, pctNum)) + '%';
           pfill.style.background = pctNum >= 50 ? '#73c991' : pctNum >= 20 ? '#e2c08d' : '#f14c4c';
-          pbar.title = `${exactPct} осталось (расход: ${usedPct})`;
+          pbar.title = `${exactPct} ` + t('limits.used_paren', { pct: usedPct });
           pbar.append(pfill);
           tdBar.append(pbar);
           tr.append(tdBar);
@@ -1123,10 +1341,10 @@ function showLimitsModal() {
     const info = h('div', 'note');
     let infoText = '';
     if (data.age != null) {
-      const ageStr = data.age < 60 ? `${data.age} с назад` : `${Math.round(data.age / 60)} мин назад`;
-      infoText = `Данные получены через «agy /usage» (${ageStr}). Кешируются 5 минут.`;
+      const ageStr = data.age < 60 ? t('limits.sec_ago', { n: data.age }) : t('limits.min_ago', { n: Math.round(data.age / 60) });
+      infoText = t('limits.info', { age: ageStr });
     } else {
-      infoText = 'Данные получены через «agy /usage». Кешируются 5 минут.';
+      infoText = t('limits.info_no_age');
     }
     info.textContent = infoText;
     contentBox.append(info);
@@ -1134,7 +1352,7 @@ function showLimitsModal() {
     if (data.raw) {
       const det = h('details');
       det.style.marginTop = '8px';
-      const sum = h('summary', '', 'Сырой экран /usage');
+      const sum = h('summary', '', t('limits.raw_screen'));
       sum.style.color = 'var(--dim)';
       sum.style.cursor = 'pointer';
       sum.style.fontSize = '12px';
@@ -1148,8 +1366,8 @@ function showLimitsModal() {
   renderModalBody(d);
 
   const row = h('div', 'btns');
-  const closeBtn = h('button', '', 'Закрыть');
-  const refreshBtn = h('button', 'primary', 'Обновить сейчас');
+  const closeBtn = h('button', '', t('common.close'));
+  const refreshBtn = h('button', 'primary', t('limits.refresh_now'));
   closeBtn.type = refreshBtn.type = 'button';
   row.append(closeBtn, refreshBtn);
   box.append(row);
@@ -1162,10 +1380,10 @@ function showLimitsModal() {
 
   refreshBtn.onclick = async () => {
     refreshBtn.disabled = true;
-    refreshBtn.textContent = '⏳ Опрос agy…';
+    refreshBtn.textContent = t('limits.refreshing');
     const fresh = await fetchLimits(true);
     refreshBtn.disabled = false;
-    refreshBtn.textContent = 'Обновить сейчас';
+    refreshBtn.textContent = t('limits.refresh_now');
     renderModalBody(fresh);
   };
 
@@ -1204,9 +1422,14 @@ window.MonacoEnvironment = {
   getWorkerUrl: () => URL.createObjectURL(new Blob(
     [`self.MonacoEnvironment={baseUrl:'${MONACO}/'};importScripts('${MONACO}/vs/base/worker/workerMain.js');`], { type: 'text/javascript' }))
 };
-require.config({ paths: { vs: MONACO + '/vs' } });
+require.config({
+  paths: { vs: MONACO + '/vs' },
+  'vs/nls': { availableLanguages: { '*': currentLang === 'ru' ? 'ru' : '' } }
+});
 require(['vs/editor/editor.main'], async () => {
   monaco = window.monaco;
+  await localesPromise;
+  $('#btn-lang').onclick = showLangModal;
   const common = {
     theme: 'vs-dark', automaticLayout: true, minimap: { enabled: false }, fontSize: 13, scrollBeyondLastLine: false,
     bracketPairColorization: { enabled: true, independentColorPoolPerBracketType: true },
@@ -1220,7 +1443,7 @@ require(['vs/editor/editor.main'], async () => {
   editor.addCommand(key, saveCmd); diffEditor.getModifiedEditor().addCommand(key, saveCmd);
   setupRainbow(editor); setupRainbow(diffEditor.getModifiedEditor()); applyToggles();
   await loadProjects();
-  if (!S.projects.length) return toast('Проектов нет: нажмите ＋ и создайте или клонируйте проект');
+  if (!S.projects.length) return toast(t('projects.none'));
   const saved = localStorage.getItem('project');
   const first = S.projects.find(p => p.id !== '_root') || S.projects[0];
   await setProject(S.projects.some(p => p.id === saved) ? saved : first.id);
