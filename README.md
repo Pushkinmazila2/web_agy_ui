@@ -2,7 +2,7 @@
 
 Заменяет `ttyd`. Внутри контейнера работает веб-IDE: слева дерево, поиск и Git, справа редактор, снизу терминал с agy.
 
-![main_screen](main_screen.png)
+![main_screen](main_screen.PNG)
 
 ## Запуск
 
