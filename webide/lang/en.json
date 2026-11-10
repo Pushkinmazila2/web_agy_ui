@@ -15,6 +15,12 @@
     "search": "Search",
     "git": "Git"
   },
+  "mobile": {
+    "sidebar": "Files",
+    "editor": "Editor",
+    "terminal": "Terminal",
+    "split": "Split"
+  },
   "projects": {
     "new": "New Project",
     "new_title": "New project / clone repository",

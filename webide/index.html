@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>agy webide</title>
 <link rel="stylesheet" href="{{XTERM}}/css/xterm.css">
 <style>
@@ -165,6 +168,335 @@
   .lang-opt.active { border-color:var(--accent); background:#094771; color:#fff; }
   .lang-tools { display:flex; flex-direction:column; gap:6px; margin:8px 0 4px; padding-top:10px; border-top:1px solid var(--line); }
   .lang-tools button { text-align:left; }
+
+  /* ───────── мобильная адаптация (<= 768px) ───────── */
+  #mobile-nav { display:none; }
+  #term-keys { display:none; }
+
+  @media (max-width: 768px) {
+    :root {
+      --mobnav-h: 52px;
+    }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      width: 100%;
+      position: fixed;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - var(--mobnav-h) - env(safe-area-inset-bottom, 0px));
+      height: calc(var(--vh, 100dvh) - var(--mobnav-h) - env(safe-area-inset-bottom, 0px));
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Нижняя панель навигации */
+    #mobile-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: calc(var(--mobnav-h) + env(safe-area-inset-bottom, 0px));
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: var(--panel);
+      border-top: 1px solid var(--line);
+      z-index: 50;
+      user-select: none;
+    }
+    .mob-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      border-radius: 0;
+      padding: 4px 2px;
+      color: var(--dim);
+      font-size: 11px;
+      position: relative;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mob-btn .mob-icon {
+      font-size: 18px;
+      line-height: 1.1;
+      transition: transform .15s ease;
+    }
+    .mob-btn.on {
+      color: #fff;
+      background: rgba(14, 99, 156, 0.2);
+    }
+    .mob-btn.on .mob-icon {
+      transform: scale(1.12);
+    }
+    .mob-btn .badge {
+      position: absolute;
+      top: 5px;
+      right: calc(50% - 16px);
+      width: 8px;
+      height: 8px;
+      min-width: 8px;
+      padding: 0;
+      border-radius: 50%;
+      background: #e2c08d;
+    }
+
+    /* Сплиттер между сайдбаром и окном на мобильных не нужен */
+    #splitV { display: none !important; }
+
+    /* Переключение видов (Sidebar / Editor / Terminal / Split) */
+    body:not([data-mob-view]) #side,
+    body[data-mob-view="sidebar"] #side {
+      display: flex !important;
+      width: 100% !important;
+      flex: 1 1 100% !important;
+      height: 100% !important;
+    }
+    body:not([data-mob-view]) #main,
+    body[data-mob-view="sidebar"] #main {
+      display: none !important;
+    }
+
+    body[data-mob-view="editor"] #side { display: none !important; }
+    body[data-mob-view="editor"] #main {
+      display: flex !important;
+      width: 100% !important;
+      flex: 1 1 100% !important;
+      height: 100% !important;
+    }
+    body[data-mob-view="editor"] #editor-wrap {
+      display: flex !important;
+      flex: 1 1 100% !important;
+      height: 100% !important;
+    }
+    body[data-mob-view="editor"] #splitH { display: none !important; }
+    body[data-mob-view="editor"] #termwrap { display: none !important; }
+
+    body[data-mob-view="terminal"] #side { display: none !important; }
+    body[data-mob-view="terminal"] #main {
+      display: flex !important;
+      width: 100% !important;
+      flex: 1 1 100% !important;
+      height: 100% !important;
+    }
+    body[data-mob-view="terminal"] #editor-wrap { display: none !important; }
+    body[data-mob-view="terminal"] #splitH { display: none !important; }
+    body[data-mob-view="terminal"] #termwrap {
+      display: flex !important;
+      flex: 1 1 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+    }
+
+    body[data-mob-view="split"] #side { display: none !important; }
+    body[data-mob-view="split"] #main {
+      display: flex !important;
+      width: 100% !important;
+      flex: 1 1 100% !important;
+      height: 100% !important;
+    }
+    body[data-mob-view="split"] #editor-wrap {
+      display: flex !important;
+      flex: 1 1 auto !important;
+      min-height: 110px !important;
+    }
+    body[data-mob-view="split"] #splitH {
+      display: block !important;
+      height: 12px !important;
+      background: #2d2d30 !important;
+      touch-action: none !important;
+      position: relative !important;
+      border-top: 1px solid var(--line) !important;
+      border-bottom: 1px solid var(--line) !important;
+    }
+    body[data-mob-view="split"] #splitH::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: var(--dim);
+      border-radius: 2px;
+    }
+    body[data-mob-view="split"] #termwrap {
+      display: flex !important;
+      height: var(--termh, 45vh) !important;
+      min-height: 110px !important;
+      flex: none !important;
+    }
+
+    /* Мобильная панель быстрых клавиш терминала */
+    #term-keys {
+      display: flex;
+      overflow-x: auto;
+      gap: 5px;
+      padding: 5px 8px;
+      background: #141416;
+      border-top: 1px solid var(--line);
+      flex: none;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      touch-action: pan-x;
+    }
+    #term-keys::-webkit-scrollbar { display: none; }
+    .tkey {
+      flex: 0 0 auto;
+      min-width: 38px;
+      height: 34px;
+      padding: 0 9px;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      background: #2a2a2d;
+      border: 1px solid #444;
+      border-radius: 5px;
+      color: #e0e0e0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tkey:active {
+      background: var(--accent);
+      color: #fff;
+      transform: scale(0.96);
+    }
+    .tkey-enter {
+      background: #094771;
+      border-color: #0e639c;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Удобные размеры касаний для мобильных */
+    button, select, input, textarea {
+      font-size: 14px;
+    }
+    /* 16px на полях ввода предотвращает нежелательный зум страницы в iOS Safari */
+    input[type=text], input[type=number], input[type=search], select, textarea {
+      font-size: 16px !important;
+    }
+    #proj { height: 38px; }
+    #newproj { width: 38px; height: 38px; font-size: 20px; }
+    #side-top { padding: 8px; }
+    #side-tabs button {
+      padding: 10px 4px;
+      font-size: 14px;
+      height: 42px;
+    }
+    #files-bar { padding: 6px 8px; gap: 6px; }
+    #files-bar button {
+      padding: 4px 12px;
+      font-size: 15px;
+      height: 32px;
+    }
+    #tree .row {
+      padding: 6px 8px;
+      min-height: 34px;
+      align-items: center;
+      font-size: 14px;
+    }
+    .grow {
+      padding: 6px 8px 6px 12px;
+      min-height: 36px;
+    }
+    /* Кнопки действий Git (+, -, ↩) всегда видимы на сенсорных экранах */
+    .grow .acts {
+      display: flex !important;
+    }
+    .grow .acts button {
+      min-width: 32px;
+      height: 30px;
+      padding: 0 8px;
+      font-size: 16px;
+      background: #3c3c3c;
+      border: 1px solid #4a4a4a;
+      border-radius: 4px;
+      margin-left: 3px;
+    }
+    .tab {
+      height: 38px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+    .tab .x {
+      padding: 4px 8px;
+      font-size: 18px;
+    }
+    #tools button {
+      padding: 4px 8px;
+      height: 30px;
+      font-size: 12px;
+    }
+    #term-bar {
+      padding: 5px 8px;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    #term-bar::-webkit-scrollbar { display: none; }
+    #term-bar button {
+      padding: 3px 8px;
+      height: 28px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    #term-title {
+      max-width: 110px;
+      font-size: 12px;
+    }
+    .limit-chip {
+      padding: 2px 6px;
+      font-size: 11px;
+    }
+    #toast {
+      left: 12px;
+      right: 12px;
+      bottom: calc(var(--mobnav-h) + 12px + env(safe-area-inset-bottom, 0px));
+      max-width: none;
+      text-align: center;
+      font-size: 13px;
+    }
+    #modal {
+      padding: 12px;
+      align-items: center;
+    }
+    .dlg {
+      width: 95vw;
+      max-height: 88vh;
+      padding: 16px;
+    }
+    .dlg.wide {
+      width: 96vw;
+      max-height: 90vh;
+    }
+    .dlg button {
+      padding: 8px 16px;
+      min-height: 38px;
+      font-size: 14px;
+    }
+    #ctx {
+      min-width: 190px;
+      font-size: 14px;
+    }
+    #ctx div {
+      padding: 8px 16px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -236,10 +568,44 @@
     <div id="splitH" class="split"></div>
     <div id="termwrap">
       <div id="term-bar"><span id="term-title">agy</span><div id="limits-wrap" class="limits-bar"></div><button id="btn-lang" title="Язык интерфейса / Interface Language">🌐 RU</button><button id="agy-set" data-i18n-title="term.settings_title" data-i18n="term.settings_btn" title="Настройки agy и флаги запуска проекта">⚙ Настройки агента</button><button id="restart" data-i18n="term.restart_btn">Перезапустить сессию</button></div>
+      <div id="term-keys">
+        <button type="button" class="tkey" data-k="esc">Esc</button>
+        <button type="button" class="tkey" data-k="tab">Tab</button>
+        <button type="button" class="tkey" data-k="ctrl-c">^C</button>
+        <button type="button" class="tkey" data-k="up">↑</button>
+        <button type="button" class="tkey" data-k="down">↓</button>
+        <button type="button" class="tkey" data-k="left">←</button>
+        <button type="button" class="tkey" data-k="right">→</button>
+        <button type="button" class="tkey" data-k="1">1</button>
+        <button type="button" class="tkey" data-k="2">2</button>
+        <button type="button" class="tkey" data-k="3">3</button>
+        <button type="button" class="tkey" data-k="y">y</button>
+        <button type="button" class="tkey" data-k="n">n</button>
+        <button type="button" class="tkey tkey-enter" data-k="enter">↵ Enter</button>
+      </div>
       <div id="term-body"></div>
     </div>
   </div>
 </div>
+<nav id="mobile-nav" aria-label="Mobile navigation">
+  <button type="button" class="mob-btn on" data-mob-tab="sidebar">
+    <span class="mob-icon">📁</span>
+    <span class="mob-label" data-i18n="mobile.sidebar">Файлы</span>
+  </button>
+  <button type="button" class="mob-btn" data-mob-tab="editor">
+    <span class="mob-icon">📝</span>
+    <span class="mob-label" data-i18n="mobile.editor">Редактор</span>
+    <span id="mob-editor-badge" class="badge" style="display:none"></span>
+  </button>
+  <button type="button" class="mob-btn" data-mob-tab="terminal">
+    <span class="mob-icon">💻</span>
+    <span class="mob-label" data-i18n="mobile.terminal">Терминал</span>
+  </button>
+  <button type="button" class="mob-btn" data-mob-tab="split">
+    <span class="mob-icon">⬚</span>
+    <span class="mob-label" data-i18n="mobile.split">Сплит</span>
+  </button>
+</nav>
 <div id="toast"></div>
 <div id="ctx"></div>
 
@@ -263,8 +629,8 @@ let editor, diffEditor, monaco;
 const rainbowRuns = [];
 
 /* ───────── локализация (i18n) ───────── */
-const DEFAULT_RU = {"common":{"ok":"OK","cancel":"Отмена","save":"Сохранить","create":"Создать","close":"Закрыть","refresh":"Обновить","delete":"Удалить","rename":"Переименовать","done":"Готово"},"tabs":{"files":"Файлы","search":"Поиск","git":"Git"},"projects":{"new":"Новый проект","new_title":"Новый проект / клонировать репозиторий","url_label":"Git URL для клонирования (пусто = пустая папка)","url_ph":"https://github.com/user/repo.git","name_label":"Имя папки (пусто = из URL)","cloning":"Клонирую…","creating":"Создаю…","done":"Готово","unsaved_close":"Есть несохранённые файлы. Закрыть их?","none":"Проектов нет: нажмите ＋ и создайте или клонируйте проект"},"files":{"new_file":"Новый файл…","new_file_title":"Новый файл","new_file_ph":"name.ext или dir/name.ext","new_dir":"Новая папка…","new_dir_title":"Новая папка","new_dir_ph":"имя папки","rename":"Переименовать… (F2)","rename_title":"Переименовать / переместить","rename_btn":"Переименовать","delete":"Удалить (Del)","delete_confirm":"Удалить «{path}»{all}? Это необратимо.","with_contents":" со всем содержимым","save_dirty_first":"Сначала сохраните изменённые файлы в этой папке/файле","save_error":"Ошибка сохранения: ","open_error":"Не удалось открыть: ","unsaved_close":"{path} не сохранён. Закрыть?","conflict_overwrite":"Файл изменён на диске (возможно, агентом). Перезаписать?"},"editor":{"diff_title":"Сравнить с HEAD","diff_btn":"Δ Diff","rainbow_title":"Цветные отступы (indent-rainbow)","rainbow_btn":"Отступы","wrap_title":"Перенос строк","wrap_btn":"Перенос","empty":"Выберите файл слева","not_git":"Это не git-репозиторий","close_unsaved":"Закрыть без сохранения?","banner_deleted":"Файл удалён или перемещён на диске.","banner_conflict":"Файл изменён на диске (агентом?), а в редакторе есть несохранённые правки.","btn_close_tab":"Закрыть вкладку","btn_save_again":"Сохранить заново","btn_reload_disk":"Загрузить с диска","btn_keep_mine":"Оставить мои правки","open_file_first":"Откройте файл"},"search":{"placeholder":"Поиск по файлам проекта (Ctrl+Shift+F)","searching":"Поиск…","regex_error":"Ошибка регулярки: {err}","not_found":"Ничего не найдено","files_count":"Файлы ({count})","truncated":"Показаны первые результаты — уточните запрос"},"git":{"no_repo":"В этом проекте нет git-репозитория.","init_btn":"Инициализировать репозиторий","connect_hint":"Подключиться к существующему: кнопка ＋ сверху → указать URL, репозиторий будет склонирован в новый проект.","token_btn":"🔑 Токен для доступа к git","token_title":"Токен для https-доступа","token_saved":"Токен сохранён","cred_host":"Хост","cred_user":"Логин","cred_token":"Токен / пароль","new_branch_title":"Новая ветка","new_branch_label":"Имя ветки (от текущей)","remote_btn":"Добавить адрес remote…","remote_title":"Адрес remote (origin)","remote_ph":"https://github.com/user/repo.git","commit_ph":"Сообщение коммита (Ctrl+Enter)","commit_btn":"✓ Commit","history":"История","no_commits":"Коммитов нет","staged":"Индекс","changes":"Изменения","unstage_one":"Убрать из индекса","unstage_all":"Убрать всё из индекса","stage_one":"В индекс","stage_all":"Добавить всё в индекс","discard_one":"Отменить изменения","discard_confirm":"Отменить изменения в «{path}»? Это необратимо.","file_deleted":"Файл удалён","no_changes":"Изменений нет","truncated":"Показаны первые 3000 файлов","publish_branch":"☁ Опубликовать ветку","sync":"⇅ Синхронизировать","sync_arrows":"⇅ Синхронизировать {arrows}","enter_commit_msg":"Введите сообщение коммита","nothing_staged_commit_all":"Ничего не добавлено в индекс. Закоммитить все изменения?","remote_branch_tag":" (удалённая)"},"term":{"settings_btn":"⚙ Настройки агента","settings_title":"Настройки agy и флаги запуска проекта","restart_btn":"Перезапустить сессию","restart_confirm":"Убить текущую сессию и запустить заново?","process_ended":"[процесс завершён — нажмите любую клавишу для перезапуска]"},"settings":{"title":"Настройки агента","project_flags":"Проект «{name}»: флаги запуска","no_placeholder":"В cmd пресета этого проекта нет {AGY_FLAGS}, поэтому флаги не применятся. Замените запуск agy в projects.json на {AGY_FLAGS}.","extra_args":"Дополнительные аргументы","extra_args_ph":"--flag значение","model_ph":"пусто = из общих настроек","default_val":"по умолчанию","effort_ph":"например high","sandbox_label":"--sandbox (песочница терминала)","skip_label":"--dangerously-skip-permissions (без подтверждений!)","add_dirs_label":"--add-dir (дополнительные папки, по одной в строке)","global_title":"Общие настройки (для всех проектов)","file_hint":"Файл: {path}. agy хранит только отличия от значений по умолчанию, поэтому значения по умолчанию из файла убираются.","file_read_error":"⚠ Файл сейчас не читается: {err}","save":"Сохранить","save_restart":"Сохранить и перезапустить агента (-c)","json_err":"Некорректный JSON в расширенных настройках: {err}","conflict_overwrite":"{err}\n\nПерезаписать файл?","saved_restarted":"Сохранено, агент перезапущен с продолжением диалога","saved":"Сохранено. Настройки применятся при следующем запуске агента","default_hint":"по умолчанию: {val}","not_set":"(не задано)","group":{"Поведение":"Поведение","Интерфейс":"Интерфейс","Ввод":"Ввод","Прочее":"Прочее","Расширенные (JSON-объекты)":"Расширенные (JSON-объекты)","behavior":"Поведение","ui":"Интерфейс","input":"Ввод","other":"Прочее","advanced":"Расширенные (JSON-объекты)"},"schema":{"agentMode":{"label":"Режим агента","help":"auto недоступен для business/enterprise-аккаунтов"},"toolPermission":{"label":"Подтверждение инструментов"},"artifactReviewPolicy":{"label":"Ревью артефактов"},"enableTerminalSandbox":{"label":"Песочница терминала"},"allowNonWorkspaceAccess":{"label":"Доступ вне рабочей папки"},"model":{"label":"Модель","help":"название как в /model; пусто = по умолчанию"},"modelProvider":{"label":"Провайдер модели","help":"\"gemini\" = напрямую через GEMINI_API_KEY"},"queuedMessages":{"label":"Сообщения во время работы"},"trustedWorkspaces":{"label":"Доверенные папки","help":"по одной в строке"},"colorScheme":{"label":"Цветовая схема"},"verbosity":{"label":"Подробность вывода"},"runningLightSpeed":{"label":"Анимация «работает»"},"altScreenMode":{"label":"Alt-screen","help":"never = история остаётся в буфере терминала"},"pickerGrouping":{"label":"Группировка в пикерах"},"hideActiveItems":{"label":"Скрывать активные элементы"},"copyOnSelect":{"label":"Копировать при выделении"},"useTerminalCursor":{"label":"Курсор терминала"},"clearScrollbackOnResize":{"label":"Очищать историю при смене размера"},"showTips":{"label":"Подсказки"},"showFeedbackSurvey":{"label":"Опрос об отзывах"},"notifications":{"label":"Уведомления"},"editor":{"label":"Редактор","help":"auto, vim, emacs или своя команда"},"editorMode":{"label":"Режим ввода"},"vimInsertFirst":{"label":"Vim: начинать в insert"},"historySize":{"label":"Размер истории ввода","help":"-1 = хранить всё, 0 = очищать"},"disableSlashCommands":{"label":"Отключить слэш-команды"},"useG1Credits":{"label":"Использовать G1-кредиты"}}},"limits":{"title":"Лимиты запросов agy","loading":"Лимиты: опрос…","loading_tip":"Опрос agy /usage в фоне…","err_chip":"⚠ Лимиты","err_default":"Лимиты не найдены в выводе /usage","click_details":"Нажмите для подробностей","click_details_refresh":"Нажмите для подробностей и обновления","refresh_now":"Обновить сейчас","refreshing":"⏳ Опрос agy…","col_model":"Модель / Группа","col_window":"Окно","col_left":"Осталось","col_bar":"Шкала","col_reset":"Сброс","rem":"осталось {pct}","used":"расход: {pct}","reset":"сброс: {val}","assumed":" [прибл.]","info":"Данные получены через «agy /usage» ({age}). Кешируются 5 минут.","info_no_age":"Данные получены через «agy /usage». Кешируются 5 минут.","sec_ago":"{n} с назад","min_ago":"{n} мин назад","raw_screen":"Сырой экран /usage","groups":{"claude":"Claude / GPT","gemini":"Gemini","all":"Все модели"},"windows":{"h5":"5 часов","week":"1 неделя"},"windows_short":{"h5":"5ч","week":"нед"},"not_loaded":"Данные ещё не загружены","used_paren":" (расход: {pct})"},"lang":{"btn":"🌐 RU","title":"Язык интерфейса / Interface Language","ru":"🇷🇺 Русский","en":"🇬🇧 English","custom":"📁 Пользовательский перевод","custom_name":"Пользовательский ({name})","download_en":"📥 Скачать шаблон (en.json)","upload_custom":"📤 Загрузить свой перевод (.json)","reset_custom":"🗑 Сбросить пользовательский перевод","applied":"Язык интерфейса изменён","invalid_json":"Неверный формат JSON файла","custom_loaded":"Пользовательский перевод успешно загружен и применён!","custom_cleared":"Пользовательский перевод удалён"}};
-const DEFAULT_EN = {"common":{"ok":"OK","cancel":"Cancel","save":"Save","create":"Create","close":"Close","refresh":"Refresh","delete":"Delete","rename":"Rename","done":"Done"},"tabs":{"files":"Files","search":"Search","git":"Git"},"projects":{"new":"New Project","new_title":"New project / clone repository","url_label":"Git URL to clone (empty = empty directory)","url_ph":"https://github.com/user/repo.git","name_label":"Directory name (empty = from URL)","cloning":"Cloning…","creating":"Creating…","done":"Done","unsaved_close":"There are unsaved files. Close them?","none":"No projects: click ＋ to create or clone a project"},"files":{"new_file":"New file…","new_file_title":"New file","new_file_ph":"name.ext or dir/name.ext","new_dir":"New folder…","new_dir_title":"New folder","new_dir_ph":"folder name","rename":"Rename… (F2)","rename_title":"Rename / move","rename_btn":"Rename","delete":"Delete (Del)","delete_confirm":"Delete '{path}'{all}? This cannot be undone.","with_contents":" with all contents","save_dirty_first":"Save modified files in this folder/file first","save_error":"Save error: ","open_error":"Failed to open: ","unsaved_close":"{path} is not saved. Close?","conflict_overwrite":"File changed on disk (possibly by agent). Overwrite?"},"editor":{"diff_title":"Compare with HEAD","diff_btn":"Δ Diff","rainbow_title":"Colored indents (indent-rainbow)","rainbow_btn":"Indents","wrap_title":"Word wrap","wrap_btn":"Wrap","empty":"Select a file on the left","not_git":"This is not a git repository","close_unsaved":"Close without saving?","banner_deleted":"File was deleted or moved on disk.","banner_conflict":"File was modified on disk (by agent?), and there are unsaved edits in the editor.","btn_close_tab":"Close tab","btn_save_again":"Save again","btn_reload_disk":"Reload from disk","btn_keep_mine":"Keep my changes","open_file_first":"Open a file first"},"search":{"placeholder":"Search in project files (Ctrl+Shift+F)","searching":"Searching…","regex_error":"Regex error: {err}","not_found":"Nothing found","files_count":"Files ({count})","truncated":"First results shown — refine query"},"git":{"no_repo":"There is no git repository in this project.","init_btn":"Initialize repository","connect_hint":"Connect to existing: click ＋ above → specify URL, repo will be cloned into a new project.","token_btn":"🔑 Git access token","token_title":"Token for https access","token_saved":"Token saved","cred_host":"Host","cred_user":"Username","cred_token":"Token / password","new_branch_title":"New branch","new_branch_label":"Branch name (from current)","remote_btn":"Add remote address…","remote_title":"Remote address (origin)","remote_ph":"https://github.com/user/repo.git","commit_ph":"Commit message (Ctrl+Enter)","commit_btn":"✓ Commit","history":"History","no_commits":"No commits","staged":"Staged","changes":"Changes","unstage_one":"Unstage","unstage_all":"Unstage all","stage_one":"Stage","stage_all":"Stage all","discard_one":"Discard changes","discard_confirm":"Discard changes in '{path}'? This cannot be undone.","file_deleted":"File deleted","no_changes":"No changes","truncated":"First 3000 files shown","publish_branch":"☁ Publish branch","sync":"⇅ Sync","sync_arrows":"⇅ Sync {arrows}","enter_commit_msg":"Enter commit message","nothing_staged_commit_all":"Nothing staged. Commit all changes?","remote_branch_tag":" (remote)"},"term":{"settings_btn":"⚙ Agent settings","settings_title":"agy settings and project launch flags","restart_btn":"Restart session","restart_confirm":"Kill current session and restart?","process_ended":"[process terminated — press any key to restart]"},"settings":{"title":"Agent Settings","project_flags":"Project '{name}': launch flags","no_placeholder":"Preset cmd lacks {AGY_FLAGS}, flags won't apply. Replace agy command in projects.json with {AGY_FLAGS}.","extra_args":"Extra arguments","extra_args_ph":"--flag value","model_ph":"empty = from global settings","default_val":"default","effort_ph":"e.g. high","sandbox_label":"--sandbox (terminal sandbox)","skip_label":"--dangerously-skip-permissions (without confirmations!)","add_dirs_label":"--add-dir (additional folders, one per line)","global_title":"Global settings (for all projects)","file_hint":"File: {path}. agy stores only differences from default values, so defaults are removed from the file.","file_read_error":"⚠ File cannot be read: {err}","save":"Save","save_restart":"Save and restart agent (-c)","json_err":"Invalid JSON in advanced settings: {err}","conflict_overwrite":"{err}\n\nOverwrite file?","saved_restarted":"Saved, agent restarted with continued dialogue","saved":"Saved. Settings will apply on next agent launch","default_hint":"default: {val}","not_set":"(not set)","group":{"Поведение":"Behavior","Интерфейс":"Interface","Ввод":"Input","Прочее":"Other","Расширенные (JSON-объекты)":"Advanced (JSON objects)","behavior":"Behavior","ui":"Interface","input":"Input","other":"Other","advanced":"Advanced (JSON objects)"},"schema":{"agentMode":{"label":"Agent mode","help":"auto is unavailable for business/enterprise accounts"},"toolPermission":{"label":"Tool permission"},"artifactReviewPolicy":{"label":"Artifact review policy"},"enableTerminalSandbox":{"label":"Terminal sandbox"},"allowNonWorkspaceAccess":{"label":"Non-workspace access"},"model":{"label":"Model","help":"name as in /model; empty = default"},"modelProvider":{"label":"Model provider","help":"\"gemini\" = directly via GEMINI_API_KEY"},"queuedMessages":{"label":"Queued messages during run"},"trustedWorkspaces":{"label":"Trusted workspaces","help":"one per line"},"colorScheme":{"label":"Color scheme"},"verbosity":{"label":"Verbosity"},"runningLightSpeed":{"label":"Running animation"},"altScreenMode":{"label":"Alt-screen mode","help":"never = history stays in terminal scrollback"},"pickerGrouping":{"label":"Picker grouping"},"hideActiveItems":{"label":"Hide active items"},"copyOnSelect":{"label":"Copy on select"},"useTerminalCursor":{"label":"Terminal cursor"},"clearScrollbackOnResize":{"label":"Clear scrollback on resize"},"showTips":{"label":"Show tips"},"showFeedbackSurvey":{"label":"Feedback survey"},"notifications":{"label":"Notifications"},"editor":{"label":"Editor","help":"auto, vim, emacs or custom command"},"editorMode":{"label":"Input mode"},"vimInsertFirst":{"label":"Vim: start in insert"},"historySize":{"label":"Input history size","help":"-1 = keep all, 0 = clear"},"disableSlashCommands":{"label":"Disable slash commands"},"useG1Credits":{"label":"Use G1 credits"}}},"limits":{"title":"agy Request Limits","loading":"Limits: checking…","loading_tip":"Querying agy /usage in background…","err_chip":"⚠ Limits","err_default":"Limits not found in /usage output","click_details":"Click for details","click_details_refresh":"Click for details and refresh","refresh_now":"Refresh now","refreshing":"⏳ Querying agy…","col_model":"Model / Group","col_window":"Window","col_left":"Remaining","col_bar":"Progress","col_reset":"Reset","rem":"{pct} remaining","used":"used: {pct}","reset":"reset: {val}","assumed":" [approx.]","info":"Data obtained via 'agy /usage' ({age}). Cached for 5 minutes.","info_no_age":"Data obtained via 'agy /usage'. Cached for 5 minutes.","sec_ago":"{n}s ago","min_ago":"{n}m ago","raw_screen":"Raw /usage screen","groups":{"claude":"Claude / GPT","gemini":"Gemini","all":"All models"},"windows":{"h5":"5 hours","week":"1 week"},"windows_short":{"h5":"5h","week":"wk"},"not_loaded":"Data not loaded yet","used_paren":" (used: {pct})"},"lang":{"btn":"🌐 EN","title":"Interface Language / Язык интерфейса","ru":"🇷🇺 Русский (Russian)","en":"🇬🇧 English","custom":"📁 Custom Translation","custom_name":"Custom ({name})","download_en":"📥 Download template (en.json)","upload_custom":"📤 Upload translation (.json)","reset_custom":"🗑 Remove custom translation","applied":"Interface language updated","invalid_json":"Invalid JSON file format","custom_loaded":"Custom translation loaded and applied successfully!","custom_cleared":"Custom translation removed"}};
+const DEFAULT_RU = {"common":{"ok":"OK","cancel":"Отмена","save":"Сохранить","create":"Создать","close":"Закрыть","refresh":"Обновить","delete":"Удалить","rename":"Переименовать","done":"Готово"},"tabs":{"files":"Файлы","search":"Поиск","git":"Git"},"mobile":{"sidebar":"Файлы","editor":"Редактор","terminal":"Терминал","split":"Сплит"},"projects":{"new":"Новый проект","new_title":"Новый проект / клонировать репозиторий","url_label":"Git URL для клонирования (пусто = пустая папка)","url_ph":"https://github.com/user/repo.git","name_label":"Имя папки (пусто = из URL)","cloning":"Клонирую…","creating":"Создаю…","done":"Готово","unsaved_close":"Есть несохранённые файлы. Закрыть их?","none":"Проектов нет: нажмите ＋ и создайте или клонируйте проект"},"files":{"new_file":"Новый файл…","new_file_title":"Новый файл","new_file_ph":"name.ext или dir/name.ext","new_dir":"Новая папка…","new_dir_title":"Новая папка","new_dir_ph":"имя папки","rename":"Переименовать… (F2)","rename_title":"Переименовать / переместить","rename_btn":"Переименовать","delete":"Удалить (Del)","delete_confirm":"Удалить «{path}»{all}? Это необратимо.","with_contents":" со всем содержимым","save_dirty_first":"Сначала сохраните изменённые файлы в этой папке/файле","save_error":"Ошибка сохранения: ","open_error":"Не удалось открыть: ","unsaved_close":"{path} не сохранён. Закрыть?","conflict_overwrite":"Файл изменён на диске (возможно, агентом). Перезаписать?"},"editor":{"diff_title":"Сравнить с HEAD","diff_btn":"Δ Diff","rainbow_title":"Цветные отступы (indent-rainbow)","rainbow_btn":"Отступы","wrap_title":"Перенос строк","wrap_btn":"Перенос","empty":"Выберите файл слева","not_git":"Это не git-репозиторий","close_unsaved":"Закрыть без сохранения?","banner_deleted":"Файл удалён или перемещён на диске.","banner_conflict":"Файл изменён на диске (агентом?), а в редакторе есть несохранённые правки.","btn_close_tab":"Закрыть вкладку","btn_save_again":"Сохранить заново","btn_reload_disk":"Загрузить с диска","btn_keep_mine":"Оставить мои правки","open_file_first":"Откройте файл"},"search":{"placeholder":"Поиск по файлам проекта (Ctrl+Shift+F)","searching":"Поиск…","regex_error":"Ошибка регулярки: {err}","not_found":"Ничего не найдено","files_count":"Файлы ({count})","truncated":"Показаны первые результаты — уточните запрос"},"git":{"no_repo":"В этом проекте нет git-репозитория.","init_btn":"Инициализировать репозиторий","connect_hint":"Подключиться к существующему: кнопка ＋ сверху → указать URL, репозиторий будет склонирован в новый проект.","token_btn":"🔑 Токен для доступа к git","token_title":"Токен для https-доступа","token_saved":"Токен сохранён","cred_host":"Хост","cred_user":"Логин","cred_token":"Токен / пароль","new_branch_title":"Новая ветка","new_branch_label":"Имя ветки (от текущей)","remote_btn":"Добавить адрес remote…","remote_title":"Адрес remote (origin)","remote_ph":"https://github.com/user/repo.git","commit_ph":"Сообщение коммита (Ctrl+Enter)","commit_btn":"✓ Commit","history":"История","no_commits":"Коммитов нет","staged":"Индекс","changes":"Изменения","unstage_one":"Убрать из индекса","unstage_all":"Убрать всё из индекса","stage_one":"В индекс","stage_all":"Добавить всё в индекс","discard_one":"Отменить изменения","discard_confirm":"Отменить изменения в «{path}»? Это необратимо.","file_deleted":"Файл удалён","no_changes":"Изменений нет","truncated":"Показаны первые 3000 файлов","publish_branch":"☁ Опубликовать ветку","sync":"⇅ Синхронизировать","sync_arrows":"⇅ Синхронизировать {arrows}","enter_commit_msg":"Введите сообщение коммита","nothing_staged_commit_all":"Ничего не добавлено в индекс. Закоммитить все изменения?","remote_branch_tag":" (удалённая)"},"term":{"settings_btn":"⚙ Настройки агента","settings_title":"Настройки agy и флаги запуска проекта","restart_btn":"Перезапустить сессию","restart_confirm":"Убить текущую сессию и запустить заново?","process_ended":"[процесс завершён — нажмите любую клавишу для перезапуска]"},"settings":{"title":"Настройки агента","project_flags":"Проект «{name}»: флаги запуска","no_placeholder":"В cmd пресета этого проекта нет {AGY_FLAGS}, поэтому флаги не применятся. Замените запуск agy в projects.json на {AGY_FLAGS}.","extra_args":"Дополнительные аргументы","extra_args_ph":"--flag значение","model_ph":"пусто = из общих настроек","default_val":"по умолчанию","effort_ph":"например high","sandbox_label":"--sandbox (песочница терминала)","skip_label":"--dangerously-skip-permissions (без подтверждений!)","add_dirs_label":"--add-dir (дополнительные папки, по одной в строке)","global_title":"Общие настройки (для всех проектов)","file_hint":"Файл: {path}. agy хранит только отличия от значений по умолчанию, поэтому значения по умолчанию из файла убираются.","file_read_error":"⚠ Файл сейчас не читается: {err}","save":"Сохранить","save_restart":"Сохранить и перезапустить агента (-c)","json_err":"Некорректный JSON в расширенных настройках: {err}","conflict_overwrite":"{err}\n\nПерезаписать файл?","saved_restarted":"Сохранено, агент перезапущен с продолжением диалога","saved":"Сохранено. Настройки применятся при следующем запуске агента","default_hint":"по умолчанию: {val}","not_set":"(не задано)","group":{"Поведение":"Поведение","Интерфейс":"Интерфейс","Ввод":"Ввод","Прочее":"Прочее","Расширенные (JSON-объекты)":"Расширенные (JSON-объекты)","behavior":"Поведение","ui":"Интерфейс","input":"Ввод","other":"Прочее","advanced":"Расширенные (JSON-объекты)"},"schema":{"agentMode":{"label":"Режим агента","help":"auto недоступен для business/enterprise-аккаунтов"},"toolPermission":{"label":"Подтверждение инструментов"},"artifactReviewPolicy":{"label":"Ревью артефактов"},"enableTerminalSandbox":{"label":"Песочница терминала"},"allowNonWorkspaceAccess":{"label":"Доступ вне рабочей папки"},"model":{"label":"Модель","help":"название как в /model; пусто = по умолчанию"},"modelProvider":{"label":"Провайдер модели","help":"\"gemini\" = напрямую через GEMINI_API_KEY"},"queuedMessages":{"label":"Сообщения во время работы"},"trustedWorkspaces":{"label":"Доверенные папки","help":"по одной в строке"},"colorScheme":{"label":"Цветовая схема"},"verbosity":{"label":"Подробность вывода"},"runningLightSpeed":{"label":"Анимация «работает»"},"altScreenMode":{"label":"Alt-screen","help":"never = история остаётся в буфере терминала"},"pickerGrouping":{"label":"Группировка в пикерах"},"hideActiveItems":{"label":"Скрывать активные элементы"},"copyOnSelect":{"label":"Копировать при выделении"},"useTerminalCursor":{"label":"Курсор терминала"},"clearScrollbackOnResize":{"label":"Очищать историю при смене размера"},"showTips":{"label":"Подсказки"},"showFeedbackSurvey":{"label":"Опрос об отзывах"},"notifications":{"label":"Уведомления"},"editor":{"label":"Редактор","help":"auto, vim, emacs или своя команда"},"editorMode":{"label":"Режим ввода"},"vimInsertFirst":{"label":"Vim: начинать в insert"},"historySize":{"label":"Размер истории ввода","help":"-1 = хранить всё, 0 = очищать"},"disableSlashCommands":{"label":"Отключить слэш-команды"},"useG1Credits":{"label":"Использовать G1-кредиты"}}},"limits":{"title":"Лимиты запросов agy","loading":"Лимиты: опрос…","loading_tip":"Опрос agy /usage в фоне…","err_chip":"⚠ Лимиты","err_default":"Лимиты не найдены в выводе /usage","click_details":"Нажмите для подробностей","click_details_refresh":"Нажмите для подробностей и обновления","refresh_now":"Обновить сейчас","refreshing":"⏳ Опрос agy…","col_model":"Модель / Группа","col_window":"Окно","col_left":"Осталось","col_bar":"Шкала","col_reset":"Сброс","rem":"осталось {pct}","used":"расход: {pct}","reset":"сброс: {val}","assumed":" [прибл.]","info":"Данные получены через «agy /usage» ({age}). Кешируются 5 минут.","info_no_age":"Данные получены через «agy /usage». Кешируются 5 минут.","sec_ago":"{n} с назад","min_ago":"{n} мин назад","raw_screen":"Сырой экран /usage","groups":{"claude":"Claude / GPT","gemini":"Gemini","all":"Все модели"},"windows":{"h5":"5 часов","week":"1 неделя"},"windows_short":{"h5":"5ч","week":"нед"},"not_loaded":"Данные ещё не загружены","used_paren":" (расход: {pct})"},"lang":{"btn":"🌐 RU","title":"Язык интерфейса / Interface Language","ru":"🇷🇺 Русский","en":"🇬🇧 English","custom":"📁 Пользовательский перевод","custom_name":"Пользовательский ({name})","download_en":"📥 Скачать шаблон (en.json)","upload_custom":"📤 Загрузить свой перевод (.json)","reset_custom":"🗑 Сбросить пользовательский перевод","applied":"Язык интерфейса изменён","invalid_json":"Неверный формат JSON файла","custom_loaded":"Пользовательский перевод успешно загружен и применён!","custom_cleared":"Пользовательский перевод удалён"}};
+const DEFAULT_EN = {"common":{"ok":"OK","cancel":"Cancel","save":"Save","create":"Create","close":"Close","refresh":"Refresh","delete":"Delete","rename":"Rename","done":"Done"},"tabs":{"files":"Files","search":"Search","git":"Git"},"mobile":{"sidebar":"Files","editor":"Editor","terminal":"Terminal","split":"Split"},"projects":{"new":"New Project","new_title":"New project / clone repository","url_label":"Git URL to clone (empty = empty directory)","url_ph":"https://github.com/user/repo.git","name_label":"Directory name (empty = from URL)","cloning":"Cloning…","creating":"Creating…","done":"Done","unsaved_close":"There are unsaved files. Close them?","none":"No projects: click ＋ to create or clone a project"},"files":{"new_file":"New file…","new_file_title":"New file","new_file_ph":"name.ext or dir/name.ext","new_dir":"New folder…","new_dir_title":"New folder","new_dir_ph":"folder name","rename":"Rename… (F2)","rename_title":"Rename / move","rename_btn":"Rename","delete":"Delete (Del)","delete_confirm":"Delete '{path}'{all}? This cannot be undone.","with_contents":" with all contents","save_dirty_first":"Save modified files in this folder/file first","save_error":"Save error: ","open_error":"Failed to open: ","unsaved_close":"{path} is not saved. Close?","conflict_overwrite":"File changed on disk (possibly by agent). Overwrite?"},"editor":{"diff_title":"Compare with HEAD","diff_btn":"Δ Diff","rainbow_title":"Colored indents (indent-rainbow)","rainbow_btn":"Indents","wrap_title":"Word wrap","wrap_btn":"Wrap","empty":"Select a file on the left","not_git":"This is not a git repository","close_unsaved":"Close without saving?","banner_deleted":"File was deleted or moved on disk.","banner_conflict":"File was modified on disk (by agent?), and there are unsaved edits in the editor.","btn_close_tab":"Close tab","btn_save_again":"Save again","btn_reload_disk":"Reload from disk","btn_keep_mine":"Keep my changes","open_file_first":"Open a file first"},"search":{"placeholder":"Search in project files (Ctrl+Shift+F)","searching":"Searching…","regex_error":"Regex error: {err}","not_found":"Nothing found","files_count":"Files ({count})","truncated":"First results shown — refine query"},"git":{"no_repo":"There is no git repository in this project.","init_btn":"Initialize repository","connect_hint":"Connect to existing: click ＋ above → specify URL, repo will be cloned into a new project.","token_btn":"🔑 Git access token","token_title":"Token for https access","token_saved":"Token saved","cred_host":"Host","cred_user":"Username","cred_token":"Token / password","new_branch_title":"New branch","new_branch_label":"Branch name (from current)","remote_btn":"Add remote address…","remote_title":"Remote address (origin)","remote_ph":"https://github.com/user/repo.git","commit_ph":"Commit message (Ctrl+Enter)","commit_btn":"✓ Commit","history":"History","no_commits":"No commits","staged":"Staged","changes":"Changes","unstage_one":"Unstage","unstage_all":"Unstage all","stage_one":"Stage","stage_all":"Stage all","discard_one":"Discard changes","discard_confirm":"Discard changes in '{path}'? This cannot be undone.","file_deleted":"File deleted","no_changes":"No changes","truncated":"First 3000 files shown","publish_branch":"☁ Publish branch","sync":"⇅ Sync","sync_arrows":"⇅ Sync {arrows}","enter_commit_msg":"Enter commit message","nothing_staged_commit_all":"Nothing staged. Commit all changes?","remote_branch_tag":" (remote)"},"term":{"settings_btn":"⚙ Agent settings","settings_title":"agy settings and project launch flags","restart_btn":"Restart session","restart_confirm":"Kill current session and restart?","process_ended":"[process terminated — press any key to restart]"},"settings":{"title":"Agent Settings","project_flags":"Project '{name}': launch flags","no_placeholder":"Preset cmd lacks {AGY_FLAGS}, flags won't apply. Replace agy command in projects.json with {AGY_FLAGS}.","extra_args":"Extra arguments","extra_args_ph":"--flag value","model_ph":"empty = from global settings","default_val":"default","effort_ph":"e.g. high","sandbox_label":"--sandbox (terminal sandbox)","skip_label":"--dangerously-skip-permissions (without confirmations!)","add_dirs_label":"--add-dir (additional folders, one per line)","global_title":"Global settings (for all projects)","file_hint":"File: {path}. agy stores only differences from default values, so defaults are removed from the file.","file_read_error":"⚠ File cannot be read: {err}","save":"Save","save_restart":"Save and restart agent (-c)","json_err":"Invalid JSON in advanced settings: {err}","conflict_overwrite":"{err}\n\nOverwrite file?","saved_restarted":"Saved, agent restarted with continued dialogue","saved":"Saved. Settings will apply on next agent launch","default_hint":"default: {val}","not_set":"(not set)","group":{"Поведение":"Behavior","Интерфейс":"Interface","Ввод":"Input","Прочее":"Other","Расширенные (JSON-объекты)":"Advanced (JSON objects)","behavior":"Behavior","ui":"Interface","input":"Input","other":"Other","advanced":"Advanced (JSON objects)"},"schema":{"agentMode":{"label":"Agent mode","help":"auto is unavailable for business/enterprise accounts"},"toolPermission":{"label":"Tool permission"},"artifactReviewPolicy":{"label":"Artifact review policy"},"enableTerminalSandbox":{"label":"Terminal sandbox"},"allowNonWorkspaceAccess":{"label":"Non-workspace access"},"model":{"label":"Model","help":"name as in /model; empty = default"},"modelProvider":{"label":"Model provider","help":"\"gemini\" = directly via GEMINI_API_KEY"},"queuedMessages":{"label":"Queued messages during run"},"trustedWorkspaces":{"label":"Trusted workspaces","help":"one per line"},"colorScheme":{"label":"Color scheme"},"verbosity":{"label":"Verbosity"},"runningLightSpeed":{"label":"Running animation"},"altScreenMode":{"label":"Alt-screen mode","help":"never = history stays in terminal scrollback"},"pickerGrouping":{"label":"Picker grouping"},"hideActiveItems":{"label":"Hide active items"},"copyOnSelect":{"label":"Copy on select"},"useTerminalCursor":{"label":"Terminal cursor"},"clearScrollbackOnResize":{"label":"Clear scrollback on resize"},"showTips":{"label":"Show tips"},"showFeedbackSurvey":{"label":"Feedback survey"},"notifications":{"label":"Notifications"},"editor":{"label":"Editor","help":"auto, vim, emacs or custom command"},"editorMode":{"label":"Input mode"},"vimInsertFirst":{"label":"Vim: start in insert"},"historySize":{"label":"Input history size","help":"-1 = keep all, 0 = clear"},"disableSlashCommands":{"label":"Disable slash commands"},"useG1Credits":{"label":"Use G1 credits"}}},"limits":{"title":"agy Request Limits","loading":"Limits: checking…","loading_tip":"Querying agy /usage in background…","err_chip":"⚠ Limits","err_default":"Limits not found in /usage output","click_details":"Click for details","click_details_refresh":"Click for details and refresh","refresh_now":"Refresh now","refreshing":"⏳ Querying agy…","col_model":"Model / Group","col_window":"Window","col_left":"Remaining","col_bar":"Progress","col_reset":"Reset","rem":"{pct} remaining","used":"used: {pct}","reset":"reset: {val}","assumed":" [approx.]","info":"Data obtained via 'agy /usage' ({age}). Cached for 5 minutes.","info_no_age":"Data obtained via 'agy /usage'. Cached for 5 minutes.","sec_ago":"{n}s ago","min_ago":"{n}m ago","raw_screen":"Raw /usage screen","groups":{"claude":"Claude / GPT","gemini":"Gemini","all":"All models"},"windows":{"h5":"5 hours","week":"1 week"},"windows_short":{"h5":"5h","week":"wk"},"not_loaded":"Data not loaded yet","used_paren":" (used: {pct})"},"lang":{"btn":"🌐 EN","title":"Interface Language / Язык интерфейса","ru":"🇷🇺 Русский (Russian)","en":"🇬🇧 English","custom":"📁 Custom Translation","custom_name":"Custom ({name})","download_en":"📥 Download template (en.json)","upload_custom":"📤 Upload translation (.json)","reset_custom":"🗑 Remove custom translation","applied":"Interface language updated","invalid_json":"Invalid JSON file format","custom_loaded":"Custom translation loaded and applied successfully!","custom_cleared":"Custom translation removed"}};
 const I18N = {
   ru: DEFAULT_RU,
   en: DEFAULT_EN,
@@ -566,7 +932,10 @@ function showCtx(ev, tNode) {
   const m = $('#ctx'); m.textContent = '';
   for (const [label, fn] of items) { const d = h('div', '', label); d.onclick = () => { hideCtx(); fn(); }; m.append(d); }
   m.style.display = 'block';
-  m.style.left = Math.min(ev.clientX, innerWidth - 200) + 'px'; m.style.top = Math.min(ev.clientY, innerHeight - 140) + 'px';
+  const x = ev.clientX ?? (ev.touches && ev.touches[0] ? ev.touches[0].clientX : 20);
+  const y = ev.clientY ?? (ev.touches && ev.touches[0] ? ev.touches[0].clientY : 60);
+  m.style.left = Math.max(10, Math.min(x, innerWidth - 210)) + 'px';
+  m.style.top = Math.max(10, Math.min(y, innerHeight - 180)) + 'px';
 }
 const fsOp = async body => {
   const r = await post('/api/fs', { project: S.project, ...body });
@@ -637,6 +1006,9 @@ function renderTabs() {
     t.onauxclick = ev => { if (ev.button === 1) closeFile(f.path); };
     box.append(t);
   }
+  const hasDirty = [...S.files.values()].some(f => f.dirty);
+  const mobBadge = $('#mob-editor-badge');
+  if (mobBadge) mobBadge.style.display = hasDirty ? 'block' : 'none';
   $('#empty').style.display = S.files.size ? 'none' : 'flex';
   renderBanner();
 }
@@ -652,6 +1024,7 @@ function activate(path, focus = true) {
   updateView();
 }
 async function openFile(path, line, focus = true) {
+  if (window.innerWidth <= 768 && document.body.dataset.mobView === 'sidebar') setMobileView('editor');
   let f = S.files.get(path);
   if (!f) {
     const r = await fetch(api('/api/file', { project: S.project, path }));
@@ -1419,7 +1792,86 @@ const rootStyle = document.documentElement.style;
 if (localStorage.sidew) rootStyle.setProperty('--sidew', localStorage.sidew);
 if (localStorage.termh) rootStyle.setProperty('--termh', localStorage.termh);
 dragger($('#splitV'), e => { const w = Math.max(200, Math.min(e.clientX, innerWidth - 300)) + 'px'; rootStyle.setProperty('--sidew', w); localStorage.sidew = w; });
-dragger($('#splitH'), e => { const v = Math.max(80, Math.min(innerHeight - e.clientY, innerHeight - 140)) + 'px'; rootStyle.setProperty('--termh', v); localStorage.termh = v; });
+dragger($('#splitH'), e => {
+  const totalH = window.visualViewport ? window.visualViewport.height : innerHeight;
+  const isMob = window.innerWidth <= 768;
+  const bottomOffset = isMob ? 52 : 0;
+  const v = Math.max(80, Math.min(totalH - e.clientY - bottomOffset, totalH - 120)) + 'px';
+  rootStyle.setProperty('--termh', v);
+  localStorage.termh = v;
+  if (isMob) {
+    try { fit.fit(); } catch (err) {}
+    try { if (editor) editor.layout(); } catch (err) {}
+  }
+});
+
+/* ───────── мобильный интерфейс ───────── */
+function setMobileView(view) {
+  if (!['sidebar', 'editor', 'terminal', 'split'].includes(view)) view = 'terminal';
+  document.body.dataset.mobView = view;
+  localStorage.setItem('agy_mob_view', view);
+  document.querySelectorAll('#mobile-nav .mob-btn').forEach(btn => {
+    btn.classList.toggle('on', btn.dataset.mobTab === view);
+  });
+  if (view === 'editor' || view === 'split') {
+    requestAnimationFrame(() => {
+      try { if (editor) editor.layout(); if (diffEditor) diffEditor.layout(); } catch (e) {}
+    });
+  }
+  if (view === 'terminal' || view === 'split') {
+    requestAnimationFrame(() => {
+      try { fit.fit(); } catch (e) {}
+    });
+  }
+}
+
+// Инициализация мобильного вида (по умолчанию Терминал для быстрого доступа к agy)
+const initMobView = localStorage.getItem('agy_mob_view') || 'terminal';
+setMobileView(initMobView);
+
+document.querySelectorAll('#mobile-nav .mob-btn').forEach(btn => {
+  btn.onclick = () => setMobileView(btn.dataset.mobTab);
+});
+
+// Быстрые клавиши мобильного терминала (Esc, Tab, Ctrl+C, стрелки, 1/2/3, y/n, Enter)
+function sendTerm(data) {
+  if (ended) { ended = false; connect(); return; }
+  if (ws && ws.readyState === 1) {
+    ws.send(new TextEncoder().encode(data));
+    if (navigator.vibrate) try { navigator.vibrate(8); } catch (e) {}
+  }
+}
+const KEY_MAP = {
+  esc: '\x1b', tab: '\t', 'ctrl-c': '\x03',
+  up: '\x1b[A', down: '\x1b[B', left: '\x1b[D', right: '\x1b[C',
+  '1': '1', '2': '2', '3': '3', y: 'y', n: 'n', enter: '\r'
+};
+document.querySelectorAll('#term-keys .tkey').forEach(btn => {
+  btn.onpointerdown = e => {
+    e.preventDefault();
+    const k = btn.dataset.k;
+    if (KEY_MAP[k]) sendTerm(KEY_MAP[k]);
+  };
+});
+
+// Адаптация под виртуальную клавиатуру и ориентацию мобильных устройств
+function handleViewport() {
+  if (window.innerWidth <= 768) {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vh', h + 'px');
+    try { fit.fit(); } catch (e) {}
+    try { if (editor) editor.layout(); if (diffEditor) diffEditor.layout(); } catch (e) {}
+  } else {
+    document.documentElement.style.removeProperty('--vh');
+  }
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', handleViewport);
+  window.visualViewport.addEventListener('scroll', handleViewport);
+}
+window.addEventListener('resize', handleViewport);
+window.addEventListener('orientationchange', () => setTimeout(handleViewport, 150));
+handleViewport();
 
 /* ───────── горячие клавиши ───────── */
 addEventListener('keydown', e => {
