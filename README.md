@@ -2,18 +2,7 @@
 
 Заменяет `ttyd`. Внутри контейнера работает веб-IDE: слева дерево, поиск и Git, справа редактор, снизу терминал с agy.
 
-```
-agy-stack/
-├─ docker-compose.yml   сервис agy-cli (ваша сеть xray_client_default, прокси socks5h)
-├─ Dockerfile           ubuntu:24.04 + entrypoint + webide
-├─ entrypoint.sh        при старте: пакеты, agy, Monaco/xterm, git-настройки, запуск webide
-├─ .env.example         пароль, git-имя, адрес привязки
-├─ projects.json        пресеты проектов
-├─ webide/              server.py + index.html + lang/ (ru.json, en.json) + tgbot.py + agy-run
-├─ projects/            ваши проекты (каждая подпапка = проект)
-├─ agy-auth/            авторизация agy, токены git, флаги проектов, привязки Telegram (создаётся само)
-└─ state/               бинарник agy, Monaco/xterm, ssh-ключи, gemini/settings.json (создаётся само)
-```
+![main_screen](main_screen.png)
 
 ## Запуск
 
