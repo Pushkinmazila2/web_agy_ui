@@ -53,6 +53,9 @@
     "conflict_overwrite": "File changed on disk (possibly by agent). Overwrite?"
   },
   "editor": {
+    "save_btn": "Save",
+    "save_title": "Save file (Ctrl+S)",
+    "saved": "Saved",
     "diff_title": "Compare with HEAD",
     "diff_btn": "Δ Diff",
     "rainbow_title": "Colored indents (indent-rainbow)",
@@ -116,6 +119,8 @@
     "remote_branch_tag": " (remote)"
   },
   "term": {
+    "scroll_bottom": "Down",
+    "scroll_bottom_title": "Scroll to bottom of chat",
     "settings_btn": "⚙ Agent settings",
     "settings_title": "agy settings and project launch flags",
     "restart_btn": "Restart session",

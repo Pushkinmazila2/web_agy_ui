@@ -53,6 +53,9 @@
     "conflict_overwrite": "Файл изменён на диске (возможно, агентом). Перезаписать?"
   },
   "editor": {
+    "save_btn": "Сохранить",
+    "save_title": "Сохранить файл (Ctrl+S)",
+    "saved": "Сохранено",
     "diff_title": "Сравнить с HEAD",
     "diff_btn": "Δ Diff",
     "rainbow_title": "Цветные отступы (indent-rainbow)",
@@ -116,6 +119,8 @@
     "remote_branch_tag": " (удалённая)"
   },
   "term": {
+    "scroll_bottom": "Вниз",
+    "scroll_bottom_title": "Промотать вниз чата",
     "settings_btn": "⚙ Настройки агента",
     "settings_title": "Настройки agy и флаги запуска проекта",
     "restart_btn": "Перезапустить сессию",
