@@ -1432,14 +1432,18 @@ function openImage(path, focus = true) {
 function renderImageViewer(path) {
   const img = $('#img-elem');
   $('#img-name').textContent = path.split('/').pop();
-  $('#img-info').textContent = '...';
+  $('#img-info').textContent = 'Загрузка…';
   imgZoom = 1;
   img.style.transform = `scale(${imgZoom})`;
+  img.style.display = 'none';
   img.onload = () => {
+    img.style.display = 'block';
     $('#img-info').textContent = `${img.naturalWidth}×${img.naturalHeight} px`;
   };
   img.onerror = () => {
-    $('#img-info').textContent = 'Error loading image';
+    img.style.display = 'none';
+    $('#img-info').textContent = 'Ошибка загрузки (требуется перезапуск сервера)';
+    toast('Ошибка загрузки файла. Если сервер webide не перезапускался, выполните: docker compose restart');
   };
   img.src = api('/api/file/raw', { project: S.project, path });
 }
