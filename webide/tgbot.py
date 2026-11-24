@@ -22,7 +22,7 @@ def get_secret(name: str, default: str = "") -> str:
             return f.read().strip()
     return os.environ.get(name.upper(), default)
 
-TG_TOKEN = get_secret("tg_token").strip()
+TOKEN = get_secret("tg_token").strip()
 API = os.environ.get("TG_API_BASE", "https://api.telegram.org").rstrip("/")
 PROXY = os.environ.get("TG_PROXY", "").strip()
 ALLOWED = {int(x) for x in re.findall(r"-?\d+", os.environ.get("TG_ALLOWED_USERS", ""))}
