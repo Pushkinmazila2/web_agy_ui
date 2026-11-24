@@ -37,6 +37,13 @@ WORKSPACE = Path(os.environ.get("WORKSPACE", "/workspace")).resolve()
 PROJECTS_FILE = Path(os.environ.get("PROJECTS_FILE", BASE / "projects.json"))
 import shlex
 
+def get_secret(name: str, default: str = "") -> str:
+    secret_path = f"/run/secrets/{name}"
+    if os.path.exists(secret_path):
+        with open(secret_path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    return os.environ.get(name.upper(), default)
+    
 # {AGY_FLAGS} заменяется флагами проекта из окна «Настройки агента». agy-run умеет «продолжить диалог» (-c).
 DEFAULT_CMD = os.environ.get("AGY_CMD", f"bash {shlex.quote(str(Path(__file__).resolve().parent / 'agy-run'))} {{AGY_FLAGS}}; exec bash -l")
 SETTINGS_PATH = Path(os.environ.get("AGY_SETTINGS", Path.home() / ".gemini" / "antigravity-cli" / "settings.json"))
@@ -44,7 +51,7 @@ STATE_PATH = Path(os.environ.get("WEBIDE_STATE", Path(__file__).resolve().parent
 HOST = os.environ.get("HOST", "0.0.0.0")
 PORT = int(os.environ.get("PORT", "8080"))
 AUTH_USER = os.environ.get("AUTH_USER", "agy")
-AUTH_PASS = os.environ.get("AUTH_PASS", "")
+AUTH_PASS = get_secret("auth_pass")
 GENERATED_PASS = not AUTH_PASS
 if GENERATED_PASS:
     AUTH_PASS = secrets.token_urlsafe(12)

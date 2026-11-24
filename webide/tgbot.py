@@ -15,8 +15,14 @@ import time
 from pathlib import Path
 
 import aiohttp
+def get_secret(name: str, default: str = "") -> str:
+    secret_path = f"/run/secrets/{name}"
+    if os.path.exists(secret_path):
+        with open(secret_path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    return os.environ.get(name.upper(), default)
 
-TOKEN = os.environ.get("TG_TOKEN", "").strip()
+TG_TOKEN = get_secret("tg_token").strip()
 API = os.environ.get("TG_API_BASE", "https://api.telegram.org").rstrip("/")
 PROXY = os.environ.get("TG_PROXY", "").strip()
 ALLOWED = {int(x) for x in re.findall(r"-?\d+", os.environ.get("TG_ALLOWED_USERS", ""))}
