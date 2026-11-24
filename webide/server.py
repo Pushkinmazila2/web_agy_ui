@@ -19,6 +19,9 @@ import struct
 import sys
 import termios
 import time
+import mimetypes
+import sqlite3
+import urllib.request
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -179,6 +182,16 @@ async def api_file_put(request):
     return web.json_response({"mtime": mtime_of(p)})
 
 
+async def api_file_raw(request):
+    proj = get_project(request.query.get("project"))
+    _, p = resolve(proj, request.query.get("path", ""))
+    if not p.is_file():
+        raise web.HTTPNotFound(text="file not found")
+    content_type, _ = mimetypes.guess_type(str(p))
+    content_type = content_type or "application/octet-stream"
+    return web.FileResponse(p, headers={"Content-Type": content_type, "Cache-Control": "no-cache"})
+
+
 async def api_stat(request):
     proj = get_project(request.query.get("project"))
     out = {}
@@ -234,6 +247,167 @@ async def api_search(request):
         None, do_search, root, q, request.query.get("regex") == "1", request.query.get("case") == "1"
     )
     return web.json_response(res)
+
+
+def do_replace(root, q, rep, regex, case):
+    try:
+        python_rep = rep
+        if regex:
+            python_rep = re.sub(r'(?<!\$)\$(\d+)', r'\\\1', rep).replace('$$', '$')
+            rx = re.compile(q, 0 if case else re.I)
+        else:
+            rx = re.compile(re.escape(q), 0 if case else re.I)
+    except re.error as e:
+        return {"error": str(e)}
+
+    total_replacements = 0
+    modified_files = []
+
+    for dp, dns, fns in os.walk(root):
+        dns[:] = sorted(d for d in dns if d not in SKIP_DIRS)
+        for fn in sorted(fns):
+            fp = os.path.join(dp, fn)
+            try:
+                if os.path.islink(fp) or os.path.getsize(fp) > 1_000_000:
+                    continue
+                with open(fp, "rb") as fh:
+                    raw = fh.read()
+            except OSError:
+                continue
+            if b"\0" in raw[:4096]:
+                continue
+            text = raw.decode("utf-8", "replace")
+            new_text, n = rx.subn(python_rep if regex else lambda m: rep, text)
+            if n > 0:
+                try:
+                    with open(fp, "wb") as fh:
+                        fh.write(new_text.encode("utf-8"))
+                    total_replacements += n
+                    modified_files.append(os.path.relpath(fp, root))
+                except OSError:
+                    pass
+    return {"count": total_replacements, "replacements": total_replacements, "files": len(modified_files), "files_changed": len(modified_files), "modified": modified_files}
+
+
+async def api_search_replace(request):
+    body = await request.json()
+    proj = get_project(body.get("project"))
+    root, _ = resolve(proj, "")
+    q = body.get("q", "")
+    rep = body.get("replace", "")
+    if not q:
+        return web.json_response({"error": "Empty search query"}, status=400)
+    res = await asyncio.get_running_loop().run_in_executor(
+        None, do_replace, root, q, rep, bool(body.get("regex")), bool(body.get("case"))
+    )
+    if "error" in res:
+        return web.json_response(res, status=400)
+    return web.json_response(res)
+
+
+# ───────────────────────── SQLite базы данных ─────────────────────────
+
+def _sqlite_connect(p):
+    path_url = urllib.request.pathname2url(str(p.resolve()))
+    return sqlite3.connect(f"file:{path_url}?mode=ro", uri=True, timeout=5)
+
+
+def do_db_schema(p):
+    conn = _sqlite_connect(p)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT type, name, sql FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY type, name")
+        tables = []
+        for row in cur.fetchall():
+            t_type, t_name, t_sql = row["type"], row["name"], row["sql"] or ""
+            cur.execute(f'PRAGMA table_info("{t_name}")')
+            cols = [{"cid": c["cid"], "name": c["name"], "type": c["type"], "notnull": c["notnull"], "pk": c["pk"]} for c in cur.fetchall()]
+            count = 0
+            try:
+                cur.execute(f'SELECT count(*) as cnt FROM "{t_name}"')
+                count = cur.fetchone()["cnt"]
+            except Exception:
+                pass
+            tables.append({
+                "type": t_type,
+                "name": t_name,
+                "sql": t_sql,
+                "columns": cols,
+                "count": count
+            })
+        return {"tables": tables, "size": p.stat().st_size}
+    finally:
+        conn.close()
+
+
+async def api_db_schema(request):
+    proj = get_project(request.query.get("project"))
+    _, p = resolve(proj, request.query.get("path", ""))
+    if not p.is_file():
+        raise web.HTTPNotFound(text="file not found")
+    try:
+        res = await asyncio.get_running_loop().run_in_executor(None, do_db_schema, p)
+        return web.json_response(res)
+    except sqlite3.DatabaseError as e:
+        return web.json_response({"error": f"Ошибка базы данных: {e}"}, status=400)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=500)
+
+
+def do_db_query(p, table, custom_query, limit, offset, sort, direction):
+    conn = _sqlite_connect(p)
+    cur = conn.cursor()
+    t0 = time.monotonic()
+    try:
+        if custom_query:
+            sql = custom_query.strip()
+            cur.execute(sql)
+            cols = [desc[0] for desc in cur.description] if cur.description else []
+            rows = cur.fetchmany(limit)
+            rows_list = [[col if col is not None else None for col in r] for r in rows]
+            elapsed = round((time.monotonic() - t0) * 1000, 2)
+            return {"columns": cols, "rows": rows_list, "elapsed_ms": elapsed, "has_more": len(rows) == limit}
+        elif table:
+            order_clause = f' ORDER BY "{sort}" {direction}' if sort else ""
+            sql = f'SELECT * FROM "{table}"{order_clause} LIMIT ? OFFSET ?'
+            cur.execute(sql, (limit, offset))
+            cols = [desc[0] for desc in cur.description] if cur.description else []
+            rows = cur.fetchall()
+            rows_list = [[col if col is not None else None for col in r] for r in rows]
+            total = 0
+            try:
+                cur.execute(f'SELECT count(*) FROM "{table}"')
+                total = cur.fetchone()[0]
+            except Exception:
+                total = len(rows_list)
+            elapsed = round((time.monotonic() - t0) * 1000, 2)
+            return {"columns": cols, "rows": rows_list, "total": total, "elapsed_ms": elapsed, "limit": limit, "offset": offset}
+        else:
+            return {"error": "Missing table or query"}
+    finally:
+        conn.close()
+
+
+async def api_db_query(request):
+    body = await request.json()
+    proj = get_project(body.get("project"))
+    _, p = resolve(proj, body.get("path", ""))
+    if not p.is_file():
+        raise web.HTTPNotFound(text="file not found")
+    table = body.get("table")
+    custom_query = body.get("query")
+    limit = max(1, min(int(body.get("limit", 50)), 500))
+    offset = max(0, int(body.get("offset", 0)))
+    sort = body.get("sort")
+    direction = "DESC" if str(body.get("dir", "")).upper() == "DESC" else "ASC"
+    try:
+        res = await asyncio.get_running_loop().run_in_executor(
+            None, do_db_query, p, table, custom_query, limit, offset, sort, direction
+        )
+        return web.json_response(res)
+    except Exception as e:
+        return web.json_response({"error": str(e)}, status=400)
 
 
 # ───────────────────────── терминал ─────────────────────────
@@ -1206,9 +1380,13 @@ def main():
         web.get("/api/projects", api_projects),
         web.get("/api/tree", api_tree),
         web.get("/api/file", api_file_get),
+        web.get("/api/file/raw", api_file_raw),
         web.put("/api/file", api_file_put),
         web.get("/api/stat", api_stat),
         web.get("/api/search", api_search),
+        web.post("/api/search/replace", api_search_replace),
+        web.get("/api/db/schema", api_db_schema),
+        web.post("/api/db/query", api_db_query),
         web.post("/api/term/kill", api_term_kill),
         web.get("/api/limits", api_limits),
         web.get("/api/agy/settings", api_agy_get),
