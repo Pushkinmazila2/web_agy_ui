@@ -39,9 +39,7 @@ services:
       - PROJECTS_FILE=/etc/webide/projects.json
       - VENDOR_DIR=/root/.local/share/webide-vendor   # Monaco/xterm качаются сюда один раз (иначе CDN)
       - AUTH_USER=${AUTH_USER:-agy}
-      - AUTH_PASS=${AUTH_PASS:?задайте AUTH_PASS в файле .env}
       # Telegram-мост (выключен, пока нет TG_TOKEN)
-      - TG_TOKEN=${TG_TOKEN:-}
       - TG_ALLOWED_USERS=${TG_ALLOWED_USERS:-}
       - TG_PROXY=socks5h://${HTTP_PROXY:-vless-client}:${HTTP_PORT:-1080}
       - TG_STATE_FILE=/root/.antigravity/telegram.json
@@ -51,6 +49,9 @@ services:
       - GIT_USER_NAME=${GIT_USER_NAME:-}
       - GIT_USER_EMAIL=${GIT_USER_EMAIL:-}
       - "GIT_SSH_COMMAND=ssh -o ProxyCommand='nc -X 5 -x vless-client:1080 %h %p' -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+    secrets:
+      - auth_pass
+      - tg_token
     volumes:
       - ./projects:/workspace                        # каждая подпапка = проект
       - ./webide:/opt/webide:ro                      # правки webide: достаточно docker compose restart
@@ -68,3 +69,9 @@ networks:
   xray_client_default:
     external: true
     name: xray_client_default
+
+secrets:
+  auth_pass:
+    environment: AUTH_PASS
+  tg_token:
+    environment: TG_TOKEN
